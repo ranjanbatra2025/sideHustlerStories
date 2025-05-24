@@ -1,348 +1,113 @@
-export const sideHustles = [
+export interface SideHustle {
+  id: string;
+  title: string;
+  description: string;
+  longDescription: string;
+  category: string; // e.g., "Online", "Creative", "Services", "Gig Economy"
+  income: string; // e.g., "$10-$50/hr", "$100-$500/month", "Varies"
+  difficulty: "Low" | "Medium" | "Hard";
+  timeCommitment: string; // e.g., "Flexible", "5-10 hrs/week", "Part-time"
+  startupCost: string; // e.g., "Low", "Medium", "None", "$0-$100"
+  rating: number; // e.g., 4.5
+  reviewCount: number; // e.g., 120
+  pros: string[];
+  cons: string[];
+  steps: { title: string; description: string }[];
+  platforms: { name: string; description: string; url: string }[];
+  resources: { name: string; description: string; url?: string }[]; // url is optional
+  popularSkills: string[]; // e.g., ["Writing", "SEO", "Graphic Design"]
+  image?: string; // Optional image URL for the card
+}
+
+export const sideHustles: SideHustle[] = [
   {
-    id: "freelancing",
-    title: "Freelancing",
-    description: "Offer your skills and services directly to clients on a project basis.",
-    longDescription: "Freelancing involves offering your professional skills and services directly to clients on a project basis, rather than working as an employee for a single company. As a freelancer, you work independently, set your own rates, choose your clients, and determine your work schedule. Freelancers typically offer services in areas like writing, design, programming, marketing, consulting, and many other professional fields.",
-    category: "Freelancing & Services",
-    income: "$$-$$$$ ($20-$150+/hour)",
+    id: "freelance-writing",
+    title: "Freelance Writing",
+    description: "Create compelling content for blogs, websites, and businesses.",
+    longDescription: "Freelance writing involves creating written content for various clients. This can range from blog posts and articles to website copy, marketing materials, and technical documentation. It's a flexible way to earn money using your writing skills.",
+    category: "Online",
+    income: "$20-$100/hr",
     difficulty: "Medium",
-    timeCommitment: "Flexible (5-40+ hours/week)",
-    startupCost: "$-$$ (Basic equipment and software)",
-    rating: 4.8,
-    reviewCount: 156,
-    pros: [
-      "Flexible work hours and location",
-      "Freedom to choose clients and projects",
-      "Set your own rates",
-      "Low startup costs",
-      "Ability to scale up or down as needed",
-      "Diverse income streams"
-    ],
-    cons: [
-      "Inconsistent income, especially at the beginning",
-      "Responsible for finding clients and marketing yourself",
-      "Must handle all business aspects (taxes, invoicing, etc.)",
-      "No employee benefits (healthcare, paid time off)",
-      "Can be isolating without coworkers"
-    ],
+    timeCommitment: "Flexible",
+    startupCost: "Low ($0-$50 for tools)",
+    rating: 4.7,
+    reviewCount: 250,
+    pros: ["Flexible hours", "Work from anywhere", "Diverse projects"],
+    cons: ["Finding clients can be hard initially", "Inconsistent income at start"],
     steps: [
-      {
-        title: "Identify Your Marketable Skills",
-        description: "Determine which of your skills are in demand and can be offered as freelance services. Consider your professional experience, education, and personal interests."
-      },
-      {
-        title: "Define Your Services and Rates",
-        description: "Clearly define what services you'll offer and how much you'll charge. Research market rates for your skills and experience level to price competitively."
-      },
-      {
-        title: "Create an Online Presence",
-        description: "Build a professional website showcasing your portfolio, services, and testimonials. Set up profiles on relevant social media platforms and freelance marketplaces."
-      },
-      {
-        title: "Build Your Portfolio",
-        description: "Create samples of your work to demonstrate your skills to potential clients. If you're just starting, consider offering free or discounted work to build your portfolio."
-      },
-      {
-        title: "Find Your First Clients",
-        description: "Start with your existing network, join freelance platforms, attend networking events, and reach out to potential clients directly."
-      },
-      {
-        title: "Set Up Business Processes",
-        description: "Establish professional systems for contracts, invoicing, time tracking, and project management to ensure smooth operations."
-      },
-      {
-        title: "Deliver Quality Work and Build Relationships",
-        description: "Focus on exceeding client expectations, meeting deadlines, and building strong professional relationships to generate repeat business and referrals."
-      }
+      { title: "Build a Portfolio", description: "Showcase your best writing samples." },
+      { title: "Choose a Niche", description: "Specialize in areas like tech, finance, or health." },
+      { title: "Find Clients", description: "Use platforms like Upwork, Fiverr, or direct outreach." },
     ],
     platforms: [
-      {
-        name: "Upwork",
-        description: "The largest freelance marketplace with opportunities in virtually every field.",
-        url: "https://www.upwork.com"
-      },
-      {
-        name: "Fiverr",
-        description: "Popular platform where you can create specific service packages (called 'gigs').",
-        url: "https://www.fiverr.com"
-      },
-      {
-        name: "Freelancer",
-        description: "Global freelancing platform with millions of projects posted.",
-        url: "https://www.freelancer.com"
-      },
-      {
-        name: "99designs",
-        description: "Specifically for graphic designers to showcase work and enter design contests.",
-        url: "https://99designs.com"
-      },
-      {
-        name: "Toptal",
-        description: "Exclusive network for the top 3% of freelance talent in various fields.",
-        url: "https://www.toptal.com"
-      }
+      { name: "Upwork", description: "Popular freelancing platform.", url: "https://www.upwork.com" },
+      { name: "Fiverr", description: "Platform for offering 'gigs'.", url: "https://www.fiverr.com" },
     ],
     resources: [
-      {
-        name: "The Freelancer's Bible",
-        description: "Comprehensive guide to all aspects of freelancing."
-      },
-      {
-        name: "Freelancers Union",
-        description: "Organization offering resources, community, and advocacy for freelancers."
-      },
-      {
-        name: "AND.CO",
-        description: "Software for managing freelance business operations."
-      },
-      {
-        name: "Creative Class",
-        description: "Online course on the business of freelancing."
-      }
+      { name: "ProBlogger Job Board", description: "Find writing gigs." , url: "https://problogger.com/jobs/"},
+      { name: "Copyblogger", description: "Learn about copywriting.", url: "https://copyblogger.com/" },
     ],
-    popularSkills: [
-      "Web Development", "Graphic Design", "Content Writing", "Digital Marketing",
-      "Social Media Management", "SEO", "Video Editing", "Translation",
-      "Virtual Assistance", "Accounting", "Consulting", "UI/UX Design"
-    ]
+    popularSkills: ["Content Writing", "SEO", "Copywriting", "Editing", "Research"],
+    image: "/images/hustles/freelance-writing.jpg", // Example path
   },
   {
-    id: "blogging",
-    title: "Blogging",
-    description: "Create valuable content on topics you're passionate about and monetize your audience.",
-    longDescription: "Blogging involves creating and publishing content on a website to share knowledge, experiences, or insights on topics you’re passionate about. Successful bloggers monetize their audience through affiliate marketing, sponsored posts, ads, or selling digital products.",
-    category: "Digital & Online",
-    income: "$-$$$ ($100-$10,000+/month)",
+    id: "graphic-design",
+    title: "Graphic Design Services",
+    description: "Offer logo design, branding, and visual content creation.",
+    longDescription: "Provide graphic design services to individuals and businesses. This can include creating logos, branding packages, social media graphics, website mockups, and more. Strong visual skills and proficiency in design software are key.",
+    category: "Creative",
+    income: "$25-$150/hr",
     difficulty: "Medium",
-    timeCommitment: "10-20 hours/week",
-    startupCost: "$ (Domain, hosting, basic tools)",
-    rating: 4.5,
-    reviewCount: 89,
-    pros: [
-      "Flexible schedule and location",
-      "Low startup costs",
-      "Potential for passive income",
-      "Creative outlet for passions",
-      "Builds a personal brand"
-    ],
-    cons: [
-      "Takes time to build an audience",
-      "Requires consistent content creation",
-      "Income can be unpredictable",
-      "SEO and marketing skills needed"
-    ],
+    timeCommitment: "Flexible",
+    startupCost: "Medium ($50-$500 for software/hardware)",
+    rating: 4.9,
+    reviewCount: 180,
+    pros: ["Creative freedom", "High demand for good designers", "Build a strong portfolio"],
+    cons: ["Software costs", "Subjective client feedback"],
     steps: [
-      {
-        title: "Choose Your Niche",
-        description: "Select a topic you’re passionate about and that has an audience."
-      },
-      {
-        title: "Set Up Your Blog",
-        description: "Purchase a domain, hosting, and set up a blog using platforms like WordPress."
-      },
-      {
-        title: "Create Quality Content",
-        description: "Write engaging, valuable posts that solve problems for your audience."
-      },
-      {
-        title: "Learn SEO",
-        description: "Optimize your content for search engines to attract organic traffic."
-      },
-      {
-        title: "Promote Your Blog",
-        description: "Share your posts on social media, forums, and through email marketing."
-      },
-      {
-        title: "Monetize Your Blog",
-        description: "Implement affiliate links, ads, or sell products once you have traffic."
-      }
+      { title: "Master Design Tools", description: "Become proficient in Adobe Creative Suite, Figma, etc." },
+      { title: "Create a Stunning Portfolio", description: "Showcase your diverse design projects." },
+      { title: "Network and Market", description: "Reach out to potential clients and use design platforms." },
     ],
     platforms: [
-      {
-        name: "WordPress",
-        description: "Popular platform for creating and managing blogs.",
-        url: "https://wordpress.org"
-      },
-      {
-        name: "Medium",
-        description: "Platform for publishing articles and building an audience.",
-        url: "https://medium.com"
-      },
-      {
-        name: "Bluehost",
-        description: "Reliable hosting service for blogs.",
-        url: "https://www.bluehost.com"
-      }
+      { name: "Dribbble", description: "Showcase portfolio and find work.", url: "https://dribbble.com" },
+      { name: "99designs", description: "Compete in design contests or work 1-on-1.", url: "https://99designs.com" },
     ],
     resources: [
-      {
-        name: "ProBlogger",
-        description: "Blog and podcast with tips for successful blogging."
-      },
-      {
-        name: "Yoast SEO",
-        description: "Tool and guides for optimizing blog SEO."
-      }
+      { name: "Smashing Magazine", description: "Articles and resources for designers.", url: "https://www.smashingmagazine.com/" },
     ],
-    popularSkills: ["Writing", "SEO", "Content Marketing", "Social Media"]
+    popularSkills: ["Logo Design", "Branding", "UI/UX", "Adobe Illustrator", "Figma"],
+    image: "/images/hustles/graphic-design.jpg", // Example path
   },
   {
-    id: "ecommerce",
-    title: "E-commerce Store",
-    description: "Sell physical or digital products through online marketplaces or your own website.",
-    longDescription: "Running an e-commerce store involves selling products online, either through your own website or marketplaces like Amazon or Etsy. You can sell physical goods, digital products, or use dropshipping to avoid inventory management.",
-    category: "Physical Products",
-    income: "$$-$$$ ($500-$50,000+/month)",
-    difficulty: "Hard",
-    timeCommitment: "15-30 hours/week",
-    startupCost: "$$-$$$ (Inventory, website, marketing)",
-    rating: 4.2,
-    reviewCount: 67,
-    pros: [
-      "High income potential",
-      "Scalable business model",
-      "Global customer reach",
-      "Variety of monetization options"
-    ],
-    cons: [
-      "High initial costs",
-      "Inventory management challenges",
-      "Competitive market",
-      "Requires marketing expertise"
-    ],
-    steps: [
-      {
-        title: "Research Products",
-        description: "Identify products with demand and reasonable profit margins."
-      },
-      {
-        title: "Choose a Platform",
-        description: "Set up a store on Shopify, WooCommerce, or marketplaces like Amazon."
-      },
-      {
-        title: "Source Products",
-        description: "Purchase inventory, create products, or partner with dropshipping suppliers."
-      },
-      {
-        title: "Build Your Store",
-        description: "Design a user-friendly online store with clear product listings."
-      },
-      {
-        title: "Market Your Store",
-        description: "Use social media ads, SEO, and email marketing to drive traffic."
-      },
-      {
-        title: "Optimize Operations",
-        description: "Streamline shipping, customer service, and returns processes."
-      }
-    ],
-    platforms: [
-      {
-        name: "Shopify",
-        description: "All-in-one platform for building e-commerce stores.",
-        url: "https://www.shopify.com"
-      },
-      {
-        name: "Amazon",
-        description: "Massive marketplace for selling products.",
-        url: "https://www.amazon.com"
-      },
-      {
-        name: "Etsy",
-        description: "Marketplace for handmade and vintage items.",
-        url: "https://www.etsy.com"
-      }
-    ],
-    resources: [
-      {
-        name: "Oberlo",
-        description: "Tool and guides for dropshipping."
-      },
-      {
-        name: "Jungle Scout",
-        description: "Research tool for Amazon sellers."
-      }
-    ],
-    popularSkills: ["Product Sourcing", "Digital Marketing", "Customer Service", "Web Design"]
-  },
-  {
-    id: "online-courses",
-    title: "Online Courses",
-    description: "Share your expertise by creating and selling educational content.",
-    longDescription: "Creating online courses involves developing educational content in your area of expertise and selling it through platforms like Udemy or your own website. Courses can be video-based, text-based, or a mix of formats.",
-    category: "Education & Coaching",
-    income: "$$-$$$ ($500-$20,000+/month)",
-    difficulty: "Medium",
-    timeCommitment: "High initially, then passive",
-    startupCost: "$$ (Recording equipment, platform fees)",
+    id: "virtual-assistant",
+    title: "Virtual Assistant",
+    description: "Provide administrative, technical, or creative assistance to clients remotely.",
+    longDescription: "As a Virtual Assistant (VA), you offer a variety of services to clients from a remote location. Tasks can include email management, scheduling, social media management, customer service, data entry, and more.",
+    category: "Services",
+    income: "$15-$75/hr",
+    difficulty: "Low",
+    timeCommitment: "5-20 hrs/week",
+    startupCost: "Low ($0-$100)",
     rating: 4.6,
-    reviewCount: 102,
-    pros: [
-      "Potential for passive income",
-      "Share your expertise",
-      "Scalable once created",
-      "Flexible schedule after launch"
-    ],
-    cons: [
-      "High initial time investment",
-      "Requires marketing to attract students",
-      "Technical setup for recording",
-      "Ongoing updates needed"
-    ],
+    reviewCount: 310,
+    pros: ["Wide range of services to offer", "Low barrier to entry", "Work with diverse clients"],
+    cons: ["Can be repetitive", "Requires strong organizational skills"],
     steps: [
-      {
-        title: "Identify Your Expertise",
-        description: "Choose a topic you’re knowledgeable in and that has demand."
-      },
-      {
-        title: "Plan Your Course",
-        description: "Outline modules and lessons to cover key learning objectives."
-      },
-      {
-        title: "Record Content",
-        description: "Use quality equipment to record video or audio lessons."
-      },
-      {
-        title: "Choose a Platform",
-        description: "Host your course on Udemy, Teachable, or your own site."
-      },
-      {
-        title: "Market Your Course",
-        description: "Promote through social media, email, and partnerships."
-      },
-      {
-        title: "Engage Students",
-        description: "Provide support and updates to keep students satisfied."
-      }
+        { title: "Identify Your Skills", description: "Determine what services you can offer (e.g., admin, social media, tech support)." },
+        { title: "Set Your Rates", description: "Research competitive pricing for VA services." },
+        { title: "Market Your Services", description: "Use social media, freelance platforms, or create a simple website." }
     ],
     platforms: [
-      {
-        name: "Udemy",
-        description: "Popular platform for hosting online courses.",
-        url: "https://www.udemy.com"
-      },
-      {
-        name: "Teachable",
-        description: "Platform for creating and selling custom courses.",
-        url: "https://teachable.com"
-      },
-      {
-        name: "Thinkific",
-        description: "Tool for building and marketing online courses.",
-        url: "https://www.thinkific.com"
-      }
+        { name: "BELAY", description: "Connects VAs with clients.", url: "https://belaysolutions.com/" },
+        { name: "Fancy Hands", description: "Platform for US-based VAs.", url: "https://www.fancyhands.com/" }
     ],
     resources: [
-      {
-        name: "An Instructor’s Guide to Udemy",
-        description: "Official guide for creating Udemy courses."
-      },
-      {
-        name: "Course Creation Academy",
-        description: "Online resource for course creators."
-      }
+        { name: "The VA Handbook", description: "Resources and community for VAs.", url: "https://thevahandbook.com/" },
+        { name: "International Virtual Assistants Association", description: "Professional organization for VAs.", url: "https://ivaa.org/" }
     ],
-    popularSkills: ["Teaching", "Video Production", "Content Creation", "Marketing"]
+    popularSkills: ["Admin Support", "Social Media Management", "Customer Service", "Scheduling", "Data Entry"],
+    image: "/images/hustles/virtual-assistant.jpg", // Example path
   }
+  // Add more side hustle objects here...
 ];
