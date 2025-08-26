@@ -15,56 +15,56 @@ const categories = [
   {
     id: "digital",
     name: "Digital & Online",
-    description: "Side hustles that can be done completely online",
+    description: "Stories of side hustles that can be done completely online",
     count: 24,
     subcategories: ["Blogging", "Social Media", "Digital Products", "SaaS", "Affiliate Marketing"],
   },
   {
     id: "creative",
     name: "Creative & Design",
-    description: "Side hustles for creatively inclined individuals",
+    description: "Stories for creatively inclined individuals",
     count: 18,
     subcategories: ["Graphic Design", "Photography", "Video Production", "Writing", "Art"],
   },
   {
     id: "freelancing",
     name: "Freelancing & Services",
-    description: "Offering your skills and services to clients",
+    description: "Stories of offering skills and services to clients",
     count: 22,
     subcategories: ["Web Development", "Content Creation", "Virtual Assistant", "Consulting", "Marketing"],
   },
   {
     id: "physical",
     name: "Physical Products",
-    description: "Side hustles involving selling or creating physical items",
+    description: "Stories involving selling or creating physical items",
     count: 15,
     subcategories: ["E-commerce", "Handmade Crafts", "Dropshipping", "Print-on-Demand", "Local Selling"],
   },
   {
     id: "finance",
     name: "Finance & Investing",
-    description: "Side hustles related to money management and investments",
+    description: "Stories related to money management and investments",
     count: 10,
     subcategories: ["Stock Trading", "Cryptocurrency", "Real Estate", "P2P Lending", "Financial Content Creation"],
   },
   {
     id: "education",
     name: "Education & Coaching",
-    description: "Side hustles focused on teaching and mentoring others",
+    description: "Stories focused on teaching and mentoring others",
     count: 12,
     subcategories: ["Online Courses", "Tutoring", "Coaching", "Workshops", "Writing Educational Content"],
   },
   {
     id: "misc",
     name: "Miscellaneous",
-    description: "Other unique and interesting side hustle opportunities",
+    description: "Other unique and interesting side hustle stories",
     count: 8,
     subcategories: ["Rental Business", "Task Services", "Local Services", "Event Planning", "Seasonal Work"],
   },
   {
     id: "passive",
     name: "Passive Income",
-    description: "Side hustles that generate income with minimal ongoing work",
+    description: "Stories that generate income with minimal ongoing work",
     count: 16,
     subcategories: ["Dividend Investing", "Content Royalties", "Apps & Software", "Print-on-Demand", "Automated Digital Products"],
   },
@@ -72,15 +72,15 @@ const categories = [
 
 const testimonials = [
   {
-    quote: "The Digital & Online category helped me launch my blog and earn passive income!",
+    quote: "The Digital & Online stories helped me launch my blog and earn passive income!",
     author: "Alex M., Blogger",
   },
   {
-    quote: "I found my calling in graphic design thanks to the Creative & Design section.",
+    quote: "I found my calling in graphic design thanks to the Creative & Design stories.",
     author: "Lisa R., Freelance Designer",
   },
   {
-    quote: "The Freelancing category gave me the tools to start my consulting business.",
+    quote: "The Freelancing stories gave me the tools to start my consulting business.",
     author: "Mark T., Consultant",
   },
 ];
@@ -238,10 +238,10 @@ export default function CategoriesPage() {
               variants={itemVariants}
               className="text-4xl md:text-6xl font-bold mb-6"
             >
-              Side Hustle Categories
+              Side Hustle Story Categories
             </motion.h1>
             <motion.p variants={itemVariants} className="text-xl text-white/90 max-w-3xl">
-              Browse our comprehensive collection of side hustles organized by category. Find the perfect opportunity that matches your skills, interests, and goals.
+              Browse our comprehensive collection of side hustle stories organized by category. Find inspiring tales that match your interests and goals.
             </motion.p>
             <motion.div
               variants={itemVariants}
@@ -311,7 +311,7 @@ export default function CategoriesPage() {
             Featured Category: Digital & Online
           </motion.h2>
           <motion.p variants={itemVariants} className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 text-center">
-            Discover the most popular side hustles that you can start from anywhere with just a laptop and an internet connection.
+            Discover inspiring stories of side hustles that you can start from anywhere with just a laptop and an internet connection.
           </motion.p>
           <motion.div variants={itemVariants}>
             <Link href="/categories/digital" className="block">
@@ -324,7 +324,7 @@ export default function CategoriesPage() {
                     </span>
                   </CardTitle>
                   <CardDescription className="text-base">
-                    Side hustles that can be done completely online
+                    Stories of side hustles that can be done completely online
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -339,7 +339,7 @@ export default function CategoriesPage() {
                     ))}
                   </div>
                   <p className="text-muted-foreground">
-                    From blogging to SaaS, explore opportunities that leverage the power of the internet.
+                    From blogging to SaaS, explore inspiring stories that leverage the power of the internet.
                   </p>
                 </CardContent>
                 <CardFooter>
@@ -350,7 +350,7 @@ export default function CategoriesPage() {
                     aria-label="Explore Digital & Online category"
                   >
                     <div>
-                      <span>Explore Now</span>
+                      <span>Explore Stories</span>
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </div>
                   </Button>
@@ -409,7 +409,7 @@ export default function CategoriesPage() {
                   onHoverStart={() => setHoveredCategory(category.id)}
                   onHoverEnd={() => setHoveredCategory(null)}
                 >
-                  <Link href={`/categories/${category.id}`} className="block group">
+                  <Link href={`/stories?category=${category.id}`} className="block group">
                     <Card className="card-gradient border-0 shadow-sm h-full transition-all duration-300 relative">
                       <CardHeader>
                         <CardTitle className="flex items-center justify-between">
@@ -447,7 +447,7 @@ export default function CategoriesPage() {
                           aria-label={`Explore ${category.name} category`}
                         >
                           <div>
-                            <span>Explore Category</span>
+                            <span>Explore Stories</span>
                             <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
                           </div>
                         </Button>
@@ -503,7 +503,7 @@ export default function CategoriesPage() {
             variants={itemVariants}
             className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 text-center"
           >
-            Hear from users who found their perfect side hustle through our categories.
+            Hear from users who found inspiration through our stories.
           </motion.p>
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
@@ -542,22 +542,22 @@ export default function CategoriesPage() {
             variants={itemVariants}
             className="text-3xl md:text-4xl font-bold mb-6"
           >
-            Not Sure Where to Start?
+            Share Your Story
           </motion.h2>
           <motion.p
             variants={itemVariants}
             className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8"
           >
-            Take our quick quiz to discover side hustles perfectly suited to your skills, interests, and time availability.
+            Inspired by these stories? Submit your own side hustle journey and inspire others in our community.
           </motion.p>
           <motion.div variants={itemVariants}>
             <Button
               asChild
               size="lg"
               className="rounded-full px-8"
-              aria-label="Take the side hustle quiz"
+              aria-label="Submit your story"
             >
-              <Link href="/quiz">Find Your Perfect Side Hustle</Link>
+              <Link href="/submit-story">Submit Your Story</Link>
             </Button>
           </motion.div>
         </motion.div>

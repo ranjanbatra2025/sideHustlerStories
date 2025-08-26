@@ -21,7 +21,7 @@ import { useTheme } from "next-themes";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/categories", label: "Categories" },
-  { href: "/sidehustles", label: "Side Hustles" },
+  { href: "/stories", label: "Stories" },
   { href: "/about", label: "About" },
 ];
 

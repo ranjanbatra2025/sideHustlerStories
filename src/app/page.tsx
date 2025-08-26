@@ -12,85 +12,23 @@ import { ArrowRight, Clock, DollarSign, LineChart, TrendingUp, Briefcase, Sparkl
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { debounce } from "lodash";
+import Image from "next/image";
 
-// Static data (consider moving to API for scalability)
-const featuredSideHustles = [
-  {
-    id: "freelancing",
-    title: "Freelancing",
-    description: "Offer your skills and services directly to clients on a project basis.",
-    icon: <Briefcase className="h-10 w-10 text-primary" />,
-    income: "$$-$$$",
-    difficulty: "Medium",
-    timeCommitment: "Flexible",
-  },
-  {
-    id: "blogging",
-    title: "Blogging",
-    description: "Create valuable content on topics you're passionate about and monetize your audience.",
-    icon: <LineChart className="h-10 w-10 text-primary" />,
-    income: "$-$$$",
-    difficulty: "Medium",
-    timeCommitment: "10-20 hrs/week",
-  },
-  {
-    id: "ecommerce",
-    title: "E-commerce Store",
-    description: "Sell physical or digital products through online marketplaces or your own website.",
-    icon: <DollarSign className="h-10 w-10 text-primary" />,
-    income: "$$-$$$",
-    difficulty: "Hard",
-    timeCommitment: "15-30 hrs/week",
-  },
-  {
-    id: "online-courses",
-    title: "Online Courses",
-    description: "Share your expertise by creating and selling educational content.",
-    icon: <TrendingUp className="h-10 w-10 text-primary" />,
-    income: "$$-$$$",
-    difficulty: "Medium",
-    timeCommitment: "High initially, then passive",
-  },
-];
+import { type Story } from "@/lib/stories";
 
-const categories = [
-  { id: "digital", name: "Digital & Online", count: 24 },
-  { id: "creative", name: "Creative & Design", count: 18 },
-  { id: "freelancing", name: "Freelancing & Services", count: 22 },
-  { id: "physical", name: "Physical Products", count: 15 },
-  { id: "finance", name: "Finance & Investing", count: 10 },
-  { id: "education", name: "Education & Coaching", count: 12 },
-];
-
-const testimonials = [
-  {
-    quote: "SideHustlingStories helped me turn my passion for writing into a thriving freelance career!",
-    author: "Sarah M., Freelance Writer",
-    rating: 5,
-  },
-  {
-    quote: "Starting a blog was daunting, but this platform guided me to success. Now I earn passively!",
-    author: "James T., Blogger",
-    rating: 4,
-  },
-  {
-    quote: "My e-commerce store is booming thanks to the tips and resources I found here.",
-    author: "Lisa R., E-commerce Entrepreneur",
-    rating: 5,
-  },
-];
-
-const stats = [
-  { icon: <Users className="h-8 w-8 text-primary" />, value: 5000, label: "Active Users" },
-  { icon: <Briefcase className="h-8 w-8 text-primary" />, value: 100, label: "Side Hustles" },
-  { icon: <DollarSign className="h-8 w-8 text-primary" />, value: 1000000, label: "Total Earnings" },
-];
+// No more static import for stories data
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [featuredIndex, setFeaturedIndex] = useState(0);
+  const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [particleStyles, setParticleStyles] = useState<{ left: string; top: string; animationDelay: string; animationDuration: string; }[]>([]);
-  const [animatedStats, setAnimatedStats] = useState(stats.map(() => 0));
+  const [animatedStats, setAnimatedStats] = useState([0, 0, 0]);
+
+  const [stories, setStories] = useState<Story[]>([]);
+  const [categoriesData, setCategoriesData] = useState<{ id: string; name: string; count: number }[]>([]);
+  const [testimonialsData, setTestimonialsData] = useState<{ quote: string; author: string; rating: number }[]>([]);
+  const [statsData, setStatsData] = useState({ inspiredReaders: 0, storiesShared: 0, totalEarnings: 0 });
 
   const heroRef = useRef(null);
   const featuredRef = useRef(null);
@@ -110,6 +48,86 @@ export default function Home() {
   const isCtaInView = useInView(ctaRef, { once: true, amount: 0.2 });
 
   const router = useRouter();
+
+  const featuredStories = useMemo(() => stories.slice(0, 4), [stories]);
+  const categories = categoriesData;
+  const testimonials = testimonialsData;
+  const stats = useMemo(
+    () => [
+      { icon: <Users className="h-8 w-8 text-primary" />, value: statsData.inspiredReaders, label: "Inspired Readers" },
+      { icon: <Briefcase className="h-8 w-8 text-primary" />, value: statsData.storiesShared, label: "Stories Shared" },
+      { icon: <DollarSign className="h-8 w-8 text-primary" />, value: statsData.totalEarnings, label: "Total Earnings Inspired" },
+    ],
+    [statsData]
+  );
+
+  // Fetch stories from API
+  useEffect(() => {
+    const fetchStories = async () => {
+      try {
+        const res = await fetch("/api/stories");
+        if (res.ok) {
+          const data = await res.json();
+          setStories(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stories:", error);
+        // Fallback to empty array if fetch fails
+      }
+    };
+    fetchStories();
+  }, []);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/categories");
+        if (res.ok) {
+          const data = await res.json();
+          setCategoriesData(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        // Fallback to empty array if fetch fails
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch testimonials from API
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const res = await fetch("/api/testimonials");
+        if (res.ok) {
+          const data = await res.json();
+          setTestimonialsData(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch testimonials:", error);
+        // Fallback to empty array if fetch fails
+      }
+    };
+    fetchTestimonials();
+  }, []);
+
+  // Fetch stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/stats");
+        if (res.ok) {
+          const data = await res.json();
+          setStatsData(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+        // Fallback to zeros if fetch fails
+      }
+    };
+    fetchStats();
+  }, []);
 
   // Generate client-side particle styles to avoid hydration errors
   useEffect(() => {
@@ -142,15 +160,15 @@ export default function Home() {
 
       return () => clearInterval(interval);
     }
-  }, [isStatsInView]);
+  }, [isStatsInView, stats]);
 
-  // Carousel auto-advance
+  // Carousel auto-advance for testimonials
   useEffect(() => {
     const interval = setInterval(() => {
-      setCarouselIndex((prev) => (prev + 1) % testimonials.length);
+      setTestimonialIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [testimonials.length]);
 
   // Debounced search handler
   const handleSearch = debounce((value) => {
@@ -158,10 +176,10 @@ export default function Home() {
   }, 300);
 
   // Handle search submit
- const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/sidehustles?q=${encodeURIComponent(searchQuery)}`);
+      router.push(`/stories?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery("");
     }
   };
@@ -222,17 +240,17 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>SideHustlingStories - Find Your Perfect Side Hustle</title>
+        <title>SideHustlingStories - Inspiring Side Hustle Stories</title>
         <meta
           name="description"
-          content="Explore hundreds of side hustle opportunities to earn extra income, build skills, and pursue your passions with SideHustlingStories."
+          content="Explore inspiring stories of side hustles to motivate your journey towards extra income and passion projects with SideHustlingStories."
         />
-        <meta name="keywords" content="side hustle, extra income, freelancing, blogging, e-commerce, online courses" />
+        <meta name="keywords" content="side hustle stories, success stories, freelancing stories, blogging stories, e-commerce stories" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="SideHustlingStories - Find Your Perfect Side Hustle" />
+        <meta property="og:title" content="SideHustlingStories - Inspiring Side Hustle Stories" />
         <meta
           property="og:description"
-          content="Discover side hustles to earn extra income and achieve financial freedom."
+          content="Discover inspiring stories of side hustles and achieve motivation for your own journey."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://sidehustlingstories.com" />
@@ -245,7 +263,7 @@ export default function Home() {
             url: "https://sidehustlingstories.com",
             potentialAction: {
               "@type": "SearchAction",
-              target: "https://sidehustlingstories.com/sidehustles?q={search_term_string}",
+              target: "https://sidehustlingstories.com/stories?q={search_term_string}",
               "query-input": "required name=search_term_string",
             },
           })}
@@ -284,7 +302,7 @@ export default function Home() {
               className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6"
               variants={containerVariants}
             >
-              {"Discover Your Perfect ".split("").map((char, i) => (
+              {"Discover Inspiring ".split("").map((char, i) => (
                 <motion.span key={`hero-char-${i}`} variants={heroTextVariants} custom={i}>
                   {char}
                 </motion.span>
@@ -294,14 +312,14 @@ export default function Home() {
                 variants={heroTextVariants}
                 custom={20}
               >
-                Side Hustle
+                Side Hustle Stories
               </motion.span>
             </motion.h1>
             <motion.p
               variants={itemVariants}
               className="text-xl md:text-2xl max-w-2xl mx-auto mb-10 text-white/90"
             >
-              Explore hundreds of ways to earn extra income, build new skills, and pursue your passions.
+              Read real stories of people earning extra income, building skills, and pursuing passions through side hustles.
             </motion.p>
             <motion.form
               onSubmit={handleSearchSubmit}
@@ -311,11 +329,11 @@ export default function Home() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
               <Input
                 ref={searchInputRef}
-                placeholder="Search side hustles..."
+                placeholder="Search stories..."
                 className="pl-10 py-6 text-base rounded-full bg-white/10 text-white placeholder:text-white/70 border-white/20 focus:border-primary search-glow"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                aria-label="Search side hustles by title or description"
+                aria-label="Search stories by title or description"
               />
             </motion.form>
             <motion.div
@@ -326,9 +344,9 @@ export default function Home() {
                 asChild
                 size="lg"
                 className="rounded-full text-lg px-8 bg-white text-primary hover:bg-white/90 hover:text-primary"
-                aria-label="Browse side hustle categories"
+                aria-label="Browse story categories"
               >
-                <Link href="/categories">Browse Side Hustles</Link>
+                <Link href="/categories">Browse Stories</Link>
               </Button>
               <Button
                 asChild
@@ -355,7 +373,7 @@ export default function Home() {
         />
       </section>
 
-      {/* Featured Side Hustles */}
+      {/* Featured Stories */}
       <section
         className="py-20 md:py-32 bg-muted/5"
         ref={featuredRef}
@@ -382,13 +400,13 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl md:text-5xl font-bold mb-4"
             >
-              Popular Side Hustles
+              Popular Stories
             </motion.h2>
             <motion.p
               variants={itemVariants}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Discover some of the most popular ways to start earning extra income today.
+              Discover some of the most inspiring side hustle stories.
             </motion.p>
           </motion.div>
           <motion.div
@@ -397,57 +415,53 @@ export default function Home() {
           >
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-              animate={{ x: `-${carouselIndex * 100}%` }}
+              animate={{ x: `-${featuredIndex * 100}%` }}
               transition={{ duration: 0.5, ease: "easeInOut" }}
             >
-              {featuredSideHustles.map((hustle) => (
-                <motion.div
-                  key={hustle.id}
+              {featuredStories.map((story) => (
+                <motion.div 
+                  key={story.id} 
                   variants={featuredCardVariants}
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
                   className="min-w-full lg:min-w-[calc(25%-1.5rem)]"
                 >
-                  <Link href={`/sidehustles/${hustle.id}`} className="block">
-                    <Card className="card-gradient border-0 shadow-md h-full transition-all duration-300">
-                      <CardHeader className="pb-4">
-                        <motion.div
-                          className="mb-4 w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center"
-                          whileHover={{ scale: 1.1, rotate: 5 }}
-                        >
-                          {hustle.icon}
-                        </motion.div>
-                        <CardTitle className="text-xl">{hustle.title}</CardTitle>
-                        <CardDescription className="text-base line-clamp-2">{hustle.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                        <div className="flex flex-col gap-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4 text-primary" />
-                            <span>Income Potential: {hustle.income}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-primary" />
-                            <span>Difficulty: {hustle.difficulty}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-primary" />
-                            <span>Time: {hustle.timeCommitment}</span>
-                          </div>
+                  <Card className="card-gradient border-neutral-200 dark:border-neutral-800 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col bg-card">
+                    <Image
+                      src={story.image}
+                      alt={story.title}
+                      width={400}
+                      height={200}
+                      className="rounded-t-lg object-cover w-full h-48"
+                    />
+                    <CardHeader className="pb-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <CardTitle className="text-xl font-semibold text-card-foreground">{story.name}</CardTitle>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                          <span>{story.rating.toFixed(1)}</span>
                         </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-between text-primary hover:bg-primary/5"
-                          aria-label={`Learn more about ${hustle.title}`}
-                        >
-                          Learn More <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </Link>
+                      </div>
+                      <h3 className="text-lg font-medium text-primary">{story.hustle}</h3>
+                    </CardHeader>
+                    <CardContent className="flex-grow pb-4">
+                      <p className="text-sm text-muted-foreground italic line-clamp-4">{story.story}</p>
+                    </CardContent>
+                    <CardContent className="pt-0 mt-auto">
+                      <Button
+                        asChild
+                        variant="ghost"
+                        className="w-full justify-center text-primary hover:bg-primary/10 hover:text-primary font-semibold group"
+                        aria-label={`Read more about ${story.name}'s story`}
+                      >
+                        <Link href={`/stories/${story.id}`}>
+                          Read More
+                          <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               ))}
             </motion.div>
@@ -455,12 +469,12 @@ export default function Home() {
               className="flex justify-center gap-2 mt-6"
               variants={itemVariants}
             >
-              {featuredSideHustles.map((_, index) => (
+              {featuredStories.map((_, index) => (
                 <button
                   key={index}
-                  className={`h-2 w-2 rounded-full ${index === carouselIndex ? "bg-primary" : "bg-muted"}`}
-                  onClick={() => setCarouselIndex(index)}
-                  aria-label={`Go to featured side hustle ${index + 1}`}
+                  className={`h-2 w-2 rounded-full ${index === featuredIndex ? "bg-primary" : "bg-muted"}`}
+                  onClick={() => setFeaturedIndex(index)}
+                  aria-label={`Go to featured story ${index + 1}`}
                 />
               ))}
             </motion.div>
@@ -474,15 +488,15 @@ export default function Home() {
               variant="outline"
               size="lg"
               className="rounded-full px-8"
-              aria-label="View all side hustles"
+              aria-label="View all stories"
             >
-              <Link href="/sidehustles">View All Side Hustles</Link>
+              <Link href="/stories">View All Stories</Link>
             </Button>
           </motion.div>
         </motion.div>
       </section>
 
-      {/* Why Side Hustle Section */}
+      {/* Why Read Stories Section */}
       <section
         className="py-20 bg-primary/5 relative overflow-hidden"
         ref={whyRef}
@@ -501,7 +515,7 @@ export default function Home() {
           >
             <div className="flex items-center justify-center mb-4">
               <div className="h-[1px] w-12 bg-primary/70"></div>
-              <span className="mx-3 text-sm font-medium text-primary">WHY START</span>
+              <span className="mx-3 text-sm font-medium text-primary">WHY READ</span>
               <div className="h-[1px] w-12 bg-primary/70"></div>
             </div>
             <motion.h2
@@ -509,13 +523,13 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl md:text-5xl font-bold mb-4"
             >
-              Why Start a Side Hustle?
+              Why Read Side Hustle Stories?
             </motion.h2>
             <motion.p
               variants={itemVariants}
               className="text-lg text-muted-foreground"
             >
-              A side hustle can transform your life in many ways beyond just the extra income.
+              These stories can inspire and guide your own side hustle journey in many ways.
             </motion.p>
           </motion.div>
           <motion.div
@@ -525,21 +539,21 @@ export default function Home() {
             {[
               {
                 icon: <DollarSign className="h-6 w-6 text-primary" />,
-                title: "Extra Income",
+                title: "Motivation",
                 description:
-                  "Supplement your main income, pay off debt faster, or save for future goals like travel or a home.",
+                  "Get inspired by real journeys, overcome challenges, and see the potential for extra income.",
               },
               {
                 icon: <Sparkles className="h-6 w-6 text-primary" />,
-                title: "Skill Development",
+                title: "Insights",
                 description:
-                  "Learn valuable new skills that can enhance your career prospects and personal growth.",
+                  "Learn valuable tips and strategies from those who have succeeded in side hustles.",
               },
               {
                 icon: <Briefcase className="h-6 w-6 text-primary" />,
-                title: "Freedom & Security",
+                title: "Community",
                 description:
-                  "Create financial security with multiple income streams and enjoy more freedom in your career choices.",
+                  "Join a community of like-minded individuals sharing experiences and support.",
               },
             ].map((item, index) => (
               <motion.div
@@ -649,13 +663,13 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl md:text-5xl font-bold mb-4"
             >
-              What Our Users Say
+              What Our Readers Say
             </motion.h2>
             <motion.p
               variants={itemVariants}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Hear from real people who’ve transformed their lives with SideHustlingStories.
+              Hear from real people who’ve been inspired by SideHustlingStories.
             </motion.p>
           </motion.div>
           <motion.div
@@ -664,7 +678,7 @@ export default function Home() {
           >
             <AnimatePresence mode="wait">
               <motion.div
-                key={carouselIndex}
+                key={testimonialIndex}
                 className="flex justify-center"
                 initial={{ opacity: 0, x: 100 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -674,14 +688,14 @@ export default function Home() {
                 <Card className="card-gradient border-0 shadow-md max-w-lg">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-center mb-4">
-                      {Array.from({ length: testimonials[carouselIndex].rating }).map((_, i) => (
+                      {Array.from({ length: testimonials[testimonialIndex]?.rating || 0 }).map((_, i) => (
                         <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
                       ))}
                     </div>
-                    <p className="text-lg text-center italic">“{testimonials[carouselIndex].quote}”</p>
+                    <p className="text-lg text-center italic">“{testimonials[testimonialIndex]?.quote}”</p>
                   </CardContent>
                   <CardFooter className="justify-center">
-                    <p className="text-sm text-muted-foreground">{testimonials[carouselIndex].author}</p>
+                    <p className="text-sm text-muted-foreground">{testimonials[testimonialIndex]?.author}</p>
                   </CardFooter>
                 </Card>
               </motion.div>
@@ -693,8 +707,8 @@ export default function Home() {
               {testimonials.map((_, index) => (
                 <button
                   key={index}
-                  className={`h-2 w-2 rounded-full ${index === carouselIndex ? "bg-primary" : "bg-muted"}`}
-                  onClick={() => setCarouselIndex(index)}
+                  className={`h-2 w-2 rounded-full ${index === testimonialIndex ? "bg-primary" : "bg-muted"}`}
+                  onClick={() => setTestimonialIndex(index)}
                   aria-label={`Go to testimonial ${index + 1}`}
                 />
               ))}
@@ -730,13 +744,13 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl md:text-5xl font-bold mb-4"
             >
-              Browse by Category
+              Browse Stories by Category
             </motion.h2>
             <motion.p
               variants={itemVariants}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Find the perfect side hustle based on your interests, skills, and goals.
+              Find inspiring stories based on different types of side hustles.
             </motion.p>
           </motion.div>
           <motion.div
@@ -751,7 +765,7 @@ export default function Home() {
                 animate="visible"
                 whileHover="hover"
               >
-                <Link href={`/categories/${category.id}`} className="block">
+                <Link href={`/stories?category=${category.id}`} className="block">
                   <Card className="card-gradient border-0 shadow-sm h-full">
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
@@ -760,10 +774,10 @@ export default function Home() {
                           {category.count}
                         </span>
                       </CardTitle>
-                      <CardDescription>Explore this category</CardDescription>
+                      <CardDescription>Explore stories in this category</CardDescription>
                     </CardHeader>
                     <CardFooter className="flex justify-between text-primary pt-0">
-                      <span className="text-sm font-medium">View Side Hustles</span>
+                      <span className="text-sm font-medium">View Stories</span>
                       <ArrowRight className="h-4 w-4" />
                     </CardFooter>
                   </Card>
@@ -813,22 +827,22 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl md:text-5xl font-bold mb-6"
             >
-              Ready to Start Your Side Hustle?
+              Ready to Share Your Story?
             </motion.h2>
             <motion.p
               variants={itemVariants}
               className="text-xl text-white/90 max-w-2xl mx-auto mb-10"
             >
-              Join thousands of people who have used SideHustlingStories to find their perfect side hustle and start earning extra income today.
+              Join thousands of people who have shared their side hustle stories on SideHustlingStories and inspire others today.
             </motion.p>
             <motion.div variants={itemVariants}>
               <Button
                 asChild
                 size="lg"
                 className="rounded-full text-lg px-10 bg-white text-primary hover:bg-white/90 hover:text-primary"
-                aria-label="Get started with side hustles"
+                aria-label="Submit your story"
               >
-                <Link href="/sidehustles">Get Started Now</Link>
+                <Link href="/submit-story">Submit Your Story</Link>
               </Button>
             </motion.div>
           </motion.div>
