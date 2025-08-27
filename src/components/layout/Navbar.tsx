@@ -11,12 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Menu, Search, User, Sun, Moon } from "lucide-react";
+import { Menu, Search, User } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { debounce } from "lodash";
-import { useTheme } from "next-themes";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -27,7 +26,6 @@ const navLinks = [
 
 export function Navbar() {
   const { data: session, status } = useSession();
-  const { theme, setTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -139,7 +137,7 @@ export function Navbar() {
           "fixed top-0 w-full z-50 transition-all duration-300",
           isScrolled
             ? "bg-background/95 backdrop-blur-md border-b shadow-sm py-2"
-            : "bg-transparent py-4"
+            : "bg-background/95 backdrop-blur-md py-4"
         )}
         initial="hidden"
         animate="visible"
@@ -150,11 +148,11 @@ export function Navbar() {
             href="/"
             className={cn(
               "text-2xl font-bold transition-all duration-300",
-              isScrolled ? "text-foreground" : "text-white"
+              isScrolled ? "text-foreground" : "text-foreground"
             )}
-            aria-label="Side Hustling Stories Home"
+            aria-label="Side Hustle Snaps Home"
           >
-            <span className="text-primary">Side</span>HustlingStories
+            <span className="text-primary">Side</span>HustleSnaps
           </Link>
 
           {/* Desktop Navigation */}
@@ -169,7 +167,7 @@ export function Navbar() {
                   href={link.href}
                   className={cn(
                     "font-medium hover:text-primary transition-colors relative py-2",
-                    isScrolled ? "text-foreground" : "text-white",
+                    isScrolled ? "text-foreground" : "text-foreground",
                     "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
                   )}
                   aria-label={`Navigate to ${link.label}`}
@@ -185,28 +183,12 @@ export function Navbar() {
                 size="icon"
                 className={cn(
                   "rounded-full w-10 h-10",
-                  isScrolled ? "text-foreground" : "text-white"
+                  isScrolled ? "text-foreground" : "text-foreground"
                 )}
                 onClick={() => setIsSearchOpen(true)}
                 aria-label="Open search"
               >
                 <Search className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "rounded-full w-10 h-10",
-                  isScrolled ? "text-foreground" : "text-white"
-                )}
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5 text-foreground" />
-                ) : (
-                  <Moon className="h-5 w-5 text-foreground" />
-                )}
               </Button>
               {status === "loading" ? (
                 <Button
@@ -243,7 +225,7 @@ export function Navbar() {
               size="icon"
               className={cn(
                 "rounded-full w-10 h-10",
-                isScrolled ? "text-foreground" : "text-white"
+                isScrolled ? "text-foreground" : "text-foreground"
               )}
               onClick={() => setIsSearchOpen(true)}
               aria-label="Open search"
@@ -255,7 +237,7 @@ export function Navbar() {
               size="icon"
               className={cn(
                 "rounded-full w-10 h-10",
-                isScrolled ? "text-foreground" : "text-white"
+                isScrolled ? "text-foreground" : "text-foreground"
               )}
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Open mobile menu"
@@ -333,9 +315,9 @@ export function Navbar() {
                 href="/"
                 className="text-2xl font-bold text-foreground"
                 onClick={() => setIsMobileMenuOpen(false)}
-                aria-label="Side Hustling Stories Home"
+                aria-label="Side Hustle Snaps Home"
               >
-                <span className="text-primary">Side</span>HustlingStories
+                <span className="text-primary">Side</span>HustleSnaps
               </Link>
               <Button
                 variant="ghost"
@@ -395,27 +377,6 @@ export function Navbar() {
                     Sign In
                   </Link>
                 )}
-              </motion.div>
-              <motion.div variants={mobileMenuItemVariants} initial="hidden" animate="visible">
-                <Button
-                  variant="ghost"
-                  className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2"
-                  onClick={() => {
-                    setTheme(theme === "dark" ? "light" : "dark");
-                    setIsMobileMenuOpen(false);
-                  }}
-                  aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-                >
-                  {theme === "dark" ? (
-                    <>
-                      <Sun className="h-5 w-5 mr-2 text-foreground" /> Light Mode
-                    </>
-                  ) : (
-                    <>
-                      <Moon className="h-5 w-5 mr-2 text-foreground" /> Dark Mode
-                    </>
-                  )}
-                </Button>
               </motion.div>
             </nav>
           </motion.div>

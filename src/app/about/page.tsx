@@ -14,32 +14,32 @@ const teamMembers = [
   {
     name: "Jane Doe",
     role: "Founder & CEO",
-    bio: "A serial entrepreneur who turned her side hustle into a multi-million dollar business.",
+    bio: "A serial entrepreneur who shares her side hustle journey to inspire others.",
   },
   {
     name: "John Smith",
     role: "Co-Founder & CTO",
-    bio: "A tech enthusiast who built the platform to empower side hustlers worldwide.",
+    bio: "A tech enthusiast who built the platform to enable sharing of side hustle stories worldwide.",
   },
   {
     name: "Emily Brown",
     role: "Head of Content",
-    bio: "A content creator passionate about sharing side hustle stories and tips.",
+    bio: "A content creator passionate about curating and sharing inspiring side hustle stories.",
   },
 ];
 
 const timelineEvents = [
   {
+    year: "2024",
+    description: "Side Hustle Stories founded by passionate side hustlers.",
+  },
+  {
     year: "2025",
-    description: "SideHustlingStories founded by passionate entrepreneurs.",
+    description: "Launched platform for users to add and discover inspiring side hustle stories.",
   },
   {
-    year: "2026",
-    description: "Expanded into a comprehensive platform with guides and interviews.",
-  },
-  {
-    year: "2027",
-    description: "Trusted by thousands globally, with a thriving community.",
+    year: "Future",
+    description: "Building a global community of inspired side hustlers sharing their journeys.",
   },
 ];
 
@@ -123,33 +123,33 @@ export default function AboutPage() {
   return (
     <>
       <Head>
-        <title>SideHustlingStories - About Us</title>
+        <title>Side Hustle Stories - About Us</title>
         <meta
           name="description"
-          content="Learn about SideHustlingStories' mission to empower side hustlers, our story, team, and how to get in touch."
+          content="Learn about Side Hustle Stories' mission to empower people to share and discover inspiring side hustle journeys."
         />
         <meta
           name="keywords"
-          content="side hustle, about us, mission, team, financial freedom, skill development"
+          content="side hustle stories, about us, mission, team, inspiration, community"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="SideHustlingStories - About Us" />
+        <meta property="og:title" content="Side Hustle Stories - About Us" />
         <meta
           property="og:description"
-          content="Discover the mission, story, and team behind SideHustlingStories."
+          content="Discover the mission, story, and team behind Side Hustle Stories."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://sidehustlingstories.com/about" />
+        <meta property="og:url" content="https://sidehustlestories.com/about" />
         <meta property="og:image" content="/og-image.jpg" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "AboutPage",
-            name: "SideHustlingStories About",
-            url: "https://sidehustlingstories.com/about",
+            name: "Side Hustle Stories About",
+            url: "https://sidehustlestories.com/about",
             publisher: {
               "@type": "Organization",
-              name: "SideHustlingStories",
+              name: "Side Hustle Stories",
             },
           })}
         </script>
@@ -185,7 +185,7 @@ export default function AboutPage() {
             className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 text-center"
             variants={containerVariants}
           >
-            {"About SideHustlingStories".split("").map((char, i) => (
+            {"About Side Hustle Stories".split("").map((char, i) => (
               <motion.span key={`header-char-${i}`} variants={headerTextVariants} custom={i}>
                 {char}
               </motion.span>
@@ -195,7 +195,7 @@ export default function AboutPage() {
             variants={itemVariants}
             className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto text-center"
           >
-            Learn more about our mission to help people discover and succeed with side hustles.
+            Learn more about our mission to inspire through shared side hustle stories.
           </motion.p>
         </motion.div>
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
@@ -246,42 +246,42 @@ export default function AboutPage() {
               variants={itemVariants}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Empowering everyone to find their perfect side hustle.
+              Inspiring others through shared side hustle stories.
             </motion.p>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <motion.div variants={itemVariants}>
               <p className="text-lg mb-4">
-                At SideHustlingStories, we believe everyone should have access to opportunities that help them earn extra income, develop new skills, and pursue their passions.
+                At Side Hustle Stories, we believe everyone has a story worth sharing that can inspire others on their side hustle journey.
               </p>
               <p className="text-lg mb-4">
-                We're dedicated to providing comprehensive, honest, and actionable information about side hustles to help you find the perfect opportunity that fits your skills, interests, and lifestyle.
+                We're dedicated to providing a platform where people can add their side hustle stories, discover inspiring tales, and connect with like-minded individuals.
               </p>
               <p className="text-lg">
-                Whether you're looking to supplement your income, test a business idea, or explore a new passion, we're here to guide you on your side hustle journey.
+                Whether you're starting your first side hustle or scaling your venture, our community of stories is here to motivate and guide you.
               </p>
             </motion.div>
             <motion.div className="grid grid-cols-2 gap-6" variants={containerVariants}>
               {[
                 {
                   icon: <DollarSign className="h-12 w-12 text-primary" />,
-                  title: "Financial Freedom",
-                  description: "Empowering financial independence through additional income streams",
+                  title: "Income Inspiration",
+                  description: "Stories of creating additional income streams",
                 },
                 {
                   icon: <BookOpen className="h-12 w-12 text-primary" />,
-                  title: "Skill Development",
-                  description: "Building valuable skills that enhance career opportunities",
+                  title: "Learning Journeys",
+                  description: "Tales of skill development through side hustles",
                 },
                 {
                   icon: <Lightbulb className="h-12 w-12 text-primary" />,
-                  title: "Creativity",
-                  description: "Exploring passions and creative pursuits with purpose",
+                  title: "Creative Sparks",
+                  description: "Inspiring stories of passion projects",
                 },
                 {
                   icon: <Users className="h-12 w-12 text-primary" />,
-                  title: "Community",
-                  description: "Connecting with like-minded individuals on similar journeys",
+                  title: "Community Building",
+                  description: "Connecting through shared experiences",
                 },
               ].map((item, index) => (
                 <motion.div
@@ -345,7 +345,7 @@ export default function AboutPage() {
               variants={itemVariants}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              From a small idea to a global community of side hustlers.
+              From one inspiring tale to a community of shared experiences.
             </motion.p>
           </motion.div>
           <motion.div className="relative max-w-3xl mx-auto" variants={containerVariants}>
@@ -384,9 +384,9 @@ export default function AboutPage() {
               asChild
               size="lg"
               className="rounded-full px-8 bg-primary text-white hover:bg-primary/90 search-glow"
-              aria-label="Explore side hustles"
+              aria-label="Explore stories"
             >
-              <Link href="/sidehustles">Explore Side Hustles</Link>
+              <Link href="/stories">Explore Stories</Link>
             </Button>
           </motion.div>
         </motion.div>
@@ -429,7 +429,7 @@ export default function AboutPage() {
               variants={itemVariants}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              The passionate individuals behind SideHustlingStories.
+              The passionate individuals curating inspiring side hustle stories.
             </motion.p>
           </motion.div>
           <motion.div
@@ -536,7 +536,7 @@ export default function AboutPage() {
               variants={itemVariants}
               className="text-xl text-white/90 max-w-2xl mx-auto mb-10"
             >
-              Have questions, suggestions, or want to share your side hustle story? We'd love to hear from you!
+              Have a side hustle story to share? Questions or suggestions? We'd love to hear from you!
             </motion.p>
             <motion.div
               variants={itemVariants}
@@ -548,7 +548,7 @@ export default function AboutPage() {
                 className="rounded-full px-8 bg-white text-primary hover:bg-white/90 hover:text-primary search-glow"
                 aria-label="Email us"
               >
-                <Link href="mailto:contact@sidehustlingstories.com">
+                <Link href="mailto:contact@sidehustlestories.com">
                   <Mail className="h-5 w-5 mr-2" /> Email Us
                 </Link>
               </Button>
@@ -581,4 +581,4 @@ export default function AboutPage() {
       <Footer />
     </>
   );
-}
+}   

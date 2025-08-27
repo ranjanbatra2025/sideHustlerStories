@@ -4,7 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowRight, ChevronRight, Search, Star } from "lucide-react";
+import { ArrowRight, ChevronRight, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion, useInView } from "framer-motion";
@@ -18,6 +18,7 @@ const categories = [
     description: "Stories of side hustles that can be done completely online",
     count: 24,
     subcategories: ["Blogging", "Social Media", "Digital Products", "SaaS", "Affiliate Marketing"],
+    date: "2024-01-01",
   },
   {
     id: "creative",
@@ -25,6 +26,7 @@ const categories = [
     description: "Stories for creatively inclined individuals",
     count: 18,
     subcategories: ["Graphic Design", "Photography", "Video Production", "Writing", "Art"],
+    date: "2024-02-01",
   },
   {
     id: "freelancing",
@@ -32,6 +34,7 @@ const categories = [
     description: "Stories of offering skills and services to clients",
     count: 22,
     subcategories: ["Web Development", "Content Creation", "Virtual Assistant", "Consulting", "Marketing"],
+    date: "2023-12-01",
   },
   {
     id: "physical",
@@ -39,6 +42,7 @@ const categories = [
     description: "Stories involving selling or creating physical items",
     count: 15,
     subcategories: ["E-commerce", "Handmade Crafts", "Dropshipping", "Print-on-Demand", "Local Selling"],
+    date: "2024-03-01",
   },
   {
     id: "finance",
@@ -46,6 +50,7 @@ const categories = [
     description: "Stories related to money management and investments",
     count: 10,
     subcategories: ["Stock Trading", "Cryptocurrency", "Real Estate", "P2P Lending", "Financial Content Creation"],
+    date: "2024-04-01",
   },
   {
     id: "education",
@@ -53,6 +58,7 @@ const categories = [
     description: "Stories focused on teaching and mentoring others",
     count: 12,
     subcategories: ["Online Courses", "Tutoring", "Coaching", "Workshops", "Writing Educational Content"],
+    date: "2024-05-01",
   },
   {
     id: "misc",
@@ -60,6 +66,7 @@ const categories = [
     description: "Other unique and interesting side hustle stories",
     count: 8,
     subcategories: ["Rental Business", "Task Services", "Local Services", "Event Planning", "Seasonal Work"],
+    date: "2024-06-01",
   },
   {
     id: "passive",
@@ -67,38 +74,23 @@ const categories = [
     description: "Stories that generate income with minimal ongoing work",
     count: 16,
     subcategories: ["Dividend Investing", "Content Royalties", "Apps & Software", "Print-on-Demand", "Automated Digital Products"],
-  },
-];
-
-const testimonials = [
-  {
-    quote: "The Digital & Online stories helped me launch my blog and earn passive income!",
-    author: "Alex M., Blogger",
-  },
-  {
-    quote: "I found my calling in graphic design thanks to the Creative & Design stories.",
-    author: "Lisa R., Freelance Designer",
-  },
-  {
-    quote: "The Freelancing stories gave me the tools to start my consulting business.",
-    author: "Mark T., Consultant",
+    date: "2024-07-01",
   },
 ];
 
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("count"); // "count" or "name"
+  const [sortBy, setSortBy] = useState("count"); // "count", "name" or "date"
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   const headerRef = useRef(null);
   const categoriesRef = useRef(null);
   const ctaRef = useRef(null);
-  const testimonialRef = useRef(null);
 
   const isHeaderInView = useInView(headerRef, { once: true, amount: 0.2 });
   const isCategoriesInView = useInView(categoriesRef, { once: true, amount: 0.2 });
   const isCtaInView = useInView(ctaRef, { once: true, amount: 0.2 });
-  const isTestimonialInView = useInView(testimonialRef, { once: true, amount: 0.2 });
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -133,7 +125,7 @@ export default function CategoriesPage() {
 
   const handleSearch = debounce((value) => {
     setSearchTerm(value.toLowerCase());
-  }, 300);
+  }, 100); // Reduced debounce time for faster response
 
   const filteredCategories = useMemo(() => {
     const result = categories.filter(
@@ -145,8 +137,10 @@ export default function CategoriesPage() {
 
     if (sortBy === "count") {
       result.sort((a, b) => b.count - a.count);
-    } else {
+    } else if (sortBy === "name") {
       result.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "date") {
+      result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
 
     return result;
@@ -200,24 +194,14 @@ export default function CategoriesPage() {
 
       <Navbar />
 
-      {/* Header */}
+      {/* Header - With search */}
       <section
         className="relative pt-24 pb-20 md:pt-32 md:pb-24 gradient-bg text-white overflow-hidden particle-bg"
         ref={headerRef}
         role="banner"
         aria-labelledby="categories-heading"
       >
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div
-            key={i}
-            className="particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 10}s`,
-              animationDuration: `${5 + Math.random() * 5}s`,
-            }}
-          />
-        ))}
+        {/* Removed particles for faster loading */}
         <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-background/20 to-transparent"></div>
         <motion.div
           className="container mx-auto px-4 relative z-10"
@@ -250,120 +234,50 @@ export default function CategoriesPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" aria-hidden="true" />
               <Input
                 placeholder="Search categories..."
-                className="pl-10 py-6 text-base rounded-full border-white/20 bg-white/10 text-white placeholder:text-white/50 focus:border-white focus:bg-white/20 search-glow"
+                className="pl-10 py-6 text-base rounded-full border-white/20 bg-gray-600/80 text-white placeholder:text-white/70 focus:border-white focus:bg-gray-700 search-glow"
                 onChange={(e) => handleSearch(e.target.value)}
                 aria-label="Search categories by name or subcategory"
               />
               <div className="flex gap-2 mt-2">
                 <Button
-                  variant={sortBy === "count" ? "default" : "outline"}
+                  variant={sortBy === "count" ? "default" : "secondary"}
                   size="sm"
                   onClick={() => setSortBy("count")}
-                  className="rounded-full"
+                  className="rounded-full text-white bg-primary/80 hover:bg-primary"
                   aria-label="Sort categories by count"
                 >
                   By Count
                 </Button>
                 <Button
-                  variant={sortBy === "name" ? "default" : "outline"}
+                  variant={sortBy === "name" ? "default" : "secondary"}
                   size="sm"
                   onClick={() => setSortBy("name")}
-                  className="rounded-full"
+                  className="rounded-full text-white bg-primary/80 hover:bg-primary"
                   aria-label="Sort categories by name"
                 >
                   By Name
+                </Button>
+                <Button
+                  variant={sortBy === "date" ? "default" : "secondary"}
+                  size="sm"
+                  onClick={() => setSortBy("date")}
+                  className="rounded-full text-white bg-primary/80 hover:bg-primary"
+                  aria-label="Sort categories by date"
+                >
+                  By Date
                 </Button>
               </div>
             </motion.div>
           </div>
         </motion.div>
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent"></div>
-        <motion.div
-          className="absolute top-20 right-10 w-64 h-64 rounded-full bg-primary/30 blur-3xl"
-          animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
-        />
-        <motion.div
-          className="absolute bottom-20 left-10 w-64 h-64 rounded-full bg-blue-500/30 blur-3xl"
-          animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
-        />
-      </section>
-
-      {/* Featured Category Spotlight */}
-      <section
-        className="py-16 bg-muted/10"
-        ref={categoriesRef}
-        role="region"
-        aria-labelledby="featured-category-heading"
-      >
-        <motion.div
-          className="container mx-auto px-4"
-          variants={containerVariants}
-          initial="hidden"
-          animate={isCategoriesInView ? "visible" : "hidden"}
-        >
-          <motion.h2
-            id="featured-category-heading"
-            variants={itemVariants}
-            className="text-3xl md:text-4xl font-bold mb-6 text-center"
-          >
-            Featured Category: Digital & Online
-          </motion.h2>
-          <motion.p variants={itemVariants} className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 text-center">
-            Discover inspiring stories of side hustles that you can start from anywhere with just a laptop and an internet connection.
-          </motion.p>
-          <motion.div variants={itemVariants}>
-            <Link href="/categories/digital" className="block">
-              <Card className="card-gradient border-0 shadow-lg h-full transition-all duration-300">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    Digital & Online
-                    <span className="text-sm font-normal bg-primary/10 text-primary px-3 py-1 rounded-full">
-                      24
-                    </span>
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    Stories of side hustles that can be done completely online
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {categories[0].subcategories.map((subcategory) => (
-                      <span
-                        key={subcategory}
-                        className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/20 text-primary"
-                      >
-                        {subcategory}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground">
-                    From blogging to SaaS, explore inspiring stories that leverage the power of the internet.
-                  </p>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    asChild
-                    variant="default"
-                    className="w-full rounded-full"
-                    aria-label="Explore Digital & Online category"
-                  >
-                    <div>
-                      <span>Explore Stories</span>
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </div>
-                  </Button>
-                </CardFooter>
-              </Card>
-            </Link>
-          </motion.div>
-        </motion.div>
+        {/* Removed glow motions for faster loading */}
       </section>
 
       {/* Categories Grid */}
       <section
         className="py-16 md:py-24"
+        ref={categoriesRef}
         role="region"
         aria-labelledby="categories-grid-heading"
         aria-live="polite"
@@ -374,17 +288,12 @@ export default function CategoriesPage() {
           initial="hidden"
           animate={isCategoriesInView ? "visible" : "hidden"}
         >
-          <div className="flex items-center justify-center mb-12">
-            <div className="h-[1px] w-12 bg-primary/70"></div>
-            <span className="mx-3 text-sm font-medium text-primary">EXPLORE</span>
-            <div className="h-[1px] w-12 bg-primary/70"></div>
-          </div>
           <motion.h2
             id="categories-grid-heading"
             variants={itemVariants}
             className="text-3xl md:text-4xl font-bold mb-6 text-center sr-only"
           >
-            All Categories
+            Side Hustle Story Categories
           </motion.h2>
           {filteredCategories.length === 0 ? (
             <motion.p
@@ -479,47 +388,72 @@ export default function CategoriesPage() {
         </motion.div>
       </section>
 
-      {/* Testimonial Slider */}
+      {/* Featured Category Spotlight */}
       <section
-        className="py-16 bg-primary/5"
-        ref={testimonialRef}
+        className="py-16 bg-muted/10"
         role="region"
-        aria-labelledby="testimonials-heading"
+        aria-labelledby="featured-category-heading"
       >
         <motion.div
           className="container mx-auto px-4"
           variants={containerVariants}
           initial="hidden"
-          animate={isTestimonialInView ? "visible" : "hidden"}
+          animate={isCategoriesInView ? "visible" : "hidden"}
         >
           <motion.h2
-            id="testimonials-heading"
+            id="featured-category-heading"
             variants={itemVariants}
             className="text-3xl md:text-4xl font-bold mb-6 text-center"
           >
-            Success Stories
+            Featured Category: Digital & Online
           </motion.h2>
-          <motion.p
-            variants={itemVariants}
-            className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 text-center"
-          >
-            Hear from users who found inspiration through our stories.
+          <motion.p variants={itemVariants} className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 text-center">
+            Discover inspiring stories of side hustles that you can start from anywhere with just a laptop and an internet connection.
           </motion.p>
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-            variants={containerVariants}
-          >
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                className="bg-background rounded-2xl p-6 shadow-sm"
-              >
-                <Star className="h-6 w-6 text-primary mb-4" aria-hidden="true" />
-                <p className="text-lg italic text-muted-foreground mb-4">"{testimonial.quote}"</p>
-                <p className="font-medium">{testimonial.author}</p>
-              </motion.div>
-            ))}
+          <motion.div variants={itemVariants}>
+            <Link href="/categories/digital" className="block">
+              <Card className="card-gradient border-0 shadow-lg h-full transition-all duration-300">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    Digital & Online
+                    <span className="text-sm font-normal bg-primary/10 text-primary px-3 py-1 rounded-full">
+                      24
+                    </span>
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Stories of side hustles that can be done completely online
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {categories[0].subcategories.map((subcategory) => (
+                      <span
+                        key={subcategory}
+                        className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/20 text-primary"
+                      >
+                        {subcategory}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground">
+                    From blogging to SaaS, explore inspiring stories that leverage the power of the internet.
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    asChild
+                    variant="default"
+                    className="w-full rounded-full"
+                    aria-label="Explore Digital & Online category"
+                  >
+                    <div>
+                      <span>Explore Stories</span>
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </div>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </Link>
           </motion.div>
         </motion.div>
       </section>
@@ -552,13 +486,22 @@ export default function CategoriesPage() {
           </motion.p>
           <motion.div variants={itemVariants}>
             <Button
-              asChild
               size="lg"
               className="rounded-full px-8"
               aria-label="Submit your story"
+              onClick={() => setShowComingSoon(true)}
             >
-              <Link href="/submit-story">Submit Your Story</Link>
+              Submit Your Story
             </Button>
+            {showComingSoon && (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 text-lg text-primary"
+              >
+                Coming Soon
+              </motion.p>
+            )}
           </motion.div>
         </motion.div>
         <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-primary/5 rounded-br-[100px]"></div>
@@ -568,4 +511,4 @@ export default function CategoriesPage() {
       <Footer />
     </>
   );
-}
+} 

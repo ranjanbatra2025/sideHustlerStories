@@ -1,3 +1,4 @@
+// Home Page
 "use client";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -61,78 +62,32 @@ export default function Home() {
     [statsData]
   );
 
-  // Fetch stories from API
+  // Fetch all data in parallel
   useEffect(() => {
-    const fetchStories = async () => {
+    const fetchAllData = async () => {
       try {
-        const res = await fetch("/api/stories");
-        if (res.ok) {
-          const data = await res.json();
-          setStories(data);
-        }
+        const [storiesRes, categoriesRes, testimonialsRes, statsRes] = await Promise.all([
+          fetch("/api/stories"),
+          fetch("/api/categories"),
+          fetch("/api/testimonials"),
+          fetch("/api/stats"),
+        ]);
+
+        if (storiesRes.ok) setStories(await storiesRes.json());
+        if (categoriesRes.ok) setCategoriesData(await categoriesRes.json());
+        if (testimonialsRes.ok) setTestimonialsData(await testimonialsRes.json());
+        if (statsRes.ok) setStatsData(await statsRes.json());
       } catch (error) {
-        console.error("Failed to fetch stories:", error);
-        // Fallback to empty array if fetch fails
+        console.error("Failed to fetch data:", error);
       }
     };
-    fetchStories();
+    fetchAllData();
   }, []);
 
-  // Fetch categories from API
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch("/api/categories");
-        if (res.ok) {
-          const data = await res.json();
-          setCategoriesData(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-        // Fallback to empty array if fetch fails
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  // Fetch testimonials from API
-  useEffect(() => {
-    const fetchTestimonials = async () => {
-      try {
-        const res = await fetch("/api/testimonials");
-        if (res.ok) {
-          const data = await res.json();
-          setTestimonialsData(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch testimonials:", error);
-        // Fallback to empty array if fetch fails
-      }
-    };
-    fetchTestimonials();
-  }, []);
-
-  // Fetch stats from API
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await fetch("/api/stats");
-        if (res.ok) {
-          const data = await res.json();
-          setStatsData(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch stats:", error);
-        // Fallback to zeros if fetch fails
-      }
-    };
-    fetchStats();
-  }, []);
-
-  // Generate client-side particle styles to avoid hydration errors
+  // Generate client-side particle styles to avoid hydration errors (reduced to 10 particles)
   useEffect(() => {
     const generateParticles = () => {
-      return Array.from({ length: 15 }).map(() => ({
+      return Array.from({ length: 10 }).map(() => ({
         left: `${Math.random() * 100}%`,
         top: `${Math.random() * 100}%`,
         animationDelay: `${Math.random() * 5}s`,
@@ -142,23 +97,23 @@ export default function Home() {
     setParticleStyles(generateParticles());
   }, []);
 
-  // Animate stats counter
+  // Animate stats counter using requestAnimationFrame for smoother performance
   useEffect(() => {
     if (isStatsInView) {
       const duration = 2000; // 2 seconds
-      const steps = 60; // 60 frames
-      const increments = stats.map((stat) => stat.value / steps);
+      const startTime = performance.now();
+      const increments = stats.map((stat) => stat.value / duration);
 
-      const interval = setInterval(() => {
-        setAnimatedStats((prev) =>
-          prev.map((value, i) => {
-            const next = value + increments[i];
-            return next >= stats[i].value ? stats[i].value : next;
-          })
-        );
-      }, duration / steps);
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        setAnimatedStats(stats.map((stat, i) => Math.min(stat.value, increments[i] * elapsed)));
 
-      return () => clearInterval(interval);
+        if (elapsed < duration) {
+          requestAnimationFrame(animate);
+        }
+      };
+
+      requestAnimationFrame(animate);
     }
   }, [isStatsInView, stats]);
 
@@ -170,10 +125,10 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [testimonials.length]);
 
-  // Debounced search handler
-  const handleSearch = debounce((value) => {
+  // Handle search input without debounce for immediate feedback
+  const handleSearch = (value: string) => {
     setSearchQuery(value);
-  }, 300);
+  };
 
   // Handle search submit
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -184,86 +139,82 @@ export default function Home() {
     }
   };
 
-  // Animation variants
+  // Simplified animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.2 },
+      transition: { staggerChildren: 0.1 },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   };
 
   const featuredCardVariants = {
-    hidden: { opacity: 0, scale: 0.8, rotate: -5 },
+    hidden: { opacity: 0, scale: 0.95 },
     visible: {
       opacity: 1,
       scale: 1,
-      rotate: 0,
-      transition: { duration: 0.6, ease: "easeOut", type: "spring", stiffness: 100 },
+      transition: { duration: 0.4 },
     },
     hover: {
-      scale: 1.05,
-      rotate: 2,
-      boxShadow: "0 10px 20px rgba(0, 0, 0, 0.15)",
-      transition: { duration: 0.3 },
+      scale: 1.03,
+      transition: { duration: 0.2 },
     },
   };
 
   const categoryCardVariants = {
-    hidden: { opacity: 0, y: 50 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: "easeOut", type: "spring", stiffness: 100 },
+      transition: { duration: 0.4 },
     },
     hover: {
-      scale: 1.03,
-      boxShadow: "0 8px 16px rgba(0, 0, 0, 0.15)",
-      transition: { duration: 0.3 },
+      scale: 1.02,
+      transition: { duration: 0.2 },
     },
   };
 
   const heroTextVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 0.1, duration: 0.5 },
+      transition: { delay: i * 0.05, duration: 0.3 },
     }),
   };
 
   return (
     <>
       <Head>
-        <title>SideHustlingStories - Inspiring Side Hustle Stories</title>
+        <title>SideHustleSnaps - Inspiring Side Hustle Snaps</title>
         <meta
           name="description"
-          content="Explore inspiring stories of side hustles to motivate your journey towards extra income and passion projects with SideHustlingStories."
+          content="Explore inspiring snaps of side hustles to motivate your journey towards extra income and passion projects with SideHustleSnaps."
         />
-        <meta name="keywords" content="side hustle stories, success stories, freelancing stories, blogging stories, e-commerce stories" />
+        <meta name="keywords" content="side hustle snaps, success snaps, freelancing snaps, blogging snaps, e-commerce snaps" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="SideHustlingStories - Inspiring Side Hustle Stories" />
+        <meta property="og:title" content="SideHustleSnaps - Inspiring Side Hustle Snaps" />
         <meta
           property="og:description"
-          content="Discover inspiring stories of side hustles and achieve motivation for your own journey."
+          content="Discover inspiring snaps of side hustles and achieve motivation for your own journey."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://sidehustlingstories.com" />
+        <meta property="og:url" content="https://sidehustlesnaps.com" />
         <meta property="og:image" content="/og-image.jpg" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebSite",
-            name: "SideHustlingStories",
-            url: "https://sidehustlingstories.com",
+            name: "SideHustleSnaps",
+            url: "https://sidehustlesnaps.com",
             potentialAction: {
               "@type": "SearchAction",
-              target: "https://sidehustlingstories.com/stories?q={search_term_string}",
+              target: "https://sidehustlesnaps.com/stories?q={search_term_string}",
               "query-input": "required name=search_term_string",
             },
           })}
@@ -312,14 +263,14 @@ export default function Home() {
                 variants={heroTextVariants}
                 custom={20}
               >
-                Side Hustle Stories
+                Side Hustle Snaps
               </motion.span>
             </motion.h1>
             <motion.p
               variants={itemVariants}
               className="text-xl md:text-2xl max-w-2xl mx-auto mb-10 text-white/90"
             >
-              Read real stories of people earning extra income, building skills, and pursuing passions through side hustles.
+              Read real snaps of people earning extra income, building skills, and pursuing passions through side hustles.
             </motion.p>
             <motion.form
               onSubmit={handleSearchSubmit}
@@ -329,11 +280,11 @@ export default function Home() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
               <Input
                 ref={searchInputRef}
-                placeholder="Search stories..."
+                placeholder="Search snaps..."
                 className="pl-10 py-6 text-base rounded-full bg-white/10 text-white placeholder:text-white/70 border-white/20 focus:border-primary search-glow"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                aria-label="Search stories by title or description"
+                aria-label="Search snaps by title or description"
               />
             </motion.form>
             <motion.div
@@ -344,16 +295,16 @@ export default function Home() {
                 asChild
                 size="lg"
                 className="rounded-full text-lg px-8 bg-white text-primary hover:bg-white/90 hover:text-primary"
-                aria-label="Browse story categories"
+                aria-label="Browse snap categories"
               >
-                <Link href="/categories">Browse Stories</Link>
+                <Link href="/categories">Browse Snaps</Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="lg"
                 className="rounded-full text-lg px-8 bg-transparent border-white hover:bg-white/20 text-white"
-                aria-label="Learn more about SideHustlingStories"
+                aria-label="Learn more about SideHustleSnaps"
               >
                 <Link href="/about">Learn More</Link>
               </Button>
@@ -400,13 +351,13 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl md:text-5xl font-bold mb-4"
             >
-              Popular Stories
+              Popular Snaps
             </motion.h2>
             <motion.p
               variants={itemVariants}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Discover some of the most inspiring side hustle stories.
+              Discover some of the most inspiring side hustle snaps.
             </motion.p>
           </motion.div>
           <motion.div
@@ -453,7 +404,7 @@ export default function Home() {
                         asChild
                         variant="ghost"
                         className="w-full justify-center text-primary hover:bg-primary/10 hover:text-primary font-semibold group"
-                        aria-label={`Read more about ${story.name}'s story`}
+                        aria-label={`Read more about ${story.name}'s snap`}
                       >
                         <Link href={`/stories/${story.id}`}>
                           Read More
@@ -474,7 +425,7 @@ export default function Home() {
                   key={index}
                   className={`h-2 w-2 rounded-full ${index === featuredIndex ? "bg-primary" : "bg-muted"}`}
                   onClick={() => setFeaturedIndex(index)}
-                  aria-label={`Go to featured story ${index + 1}`}
+                  aria-label={`Go to featured snap ${index + 1}`}
                 />
               ))}
             </motion.div>
@@ -488,9 +439,9 @@ export default function Home() {
               variant="outline"
               size="lg"
               className="rounded-full px-8"
-              aria-label="View all stories"
+              aria-label="View all snaps"
             >
-              <Link href="/stories">View All Stories</Link>
+              <Link href="/stories">View All Snaps</Link>
             </Button>
           </motion.div>
         </motion.div>
@@ -523,13 +474,13 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl md:text-5xl font-bold mb-4"
             >
-              Why Read Side Hustle Stories?
+              Why Read Side Hustle Snaps?
             </motion.h2>
             <motion.p
               variants={itemVariants}
               className="text-lg text-muted-foreground"
             >
-              These stories can inspire and guide your own side hustle journey in many ways.
+              These snaps can inspire and guide your own side hustle journey in many ways.
             </motion.p>
           </motion.div>
           <motion.div
@@ -669,7 +620,7 @@ export default function Home() {
               variants={itemVariants}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Hear from real people who’ve been inspired by SideHustlingStories.
+              Hear from real people who’ve been inspired by SideHustleSnaps.
             </motion.p>
           </motion.div>
           <motion.div
@@ -744,13 +695,13 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl md:text-5xl font-bold mb-4"
             >
-              Browse Stories by Category
+              Browse Snaps by Category
             </motion.h2>
             <motion.p
               variants={itemVariants}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Find inspiring stories based on different types of side hustles.
+              Find inspiring snaps based on different types of side hustles.
             </motion.p>
           </motion.div>
           <motion.div
@@ -774,10 +725,10 @@ export default function Home() {
                           {category.count}
                         </span>
                       </CardTitle>
-                      <CardDescription>Explore stories in this category</CardDescription>
+                      <CardDescription>Explore snaps in this category</CardDescription>
                     </CardHeader>
                     <CardFooter className="flex justify-between text-primary pt-0">
-                      <span className="text-sm font-medium">View Stories</span>
+                      <span className="text-sm font-medium">View Snaps</span>
                       <ArrowRight className="h-4 w-4" />
                     </CardFooter>
                   </Card>
@@ -827,22 +778,22 @@ export default function Home() {
               variants={itemVariants}
               className="text-3xl md:text-5xl font-bold mb-6"
             >
-              Ready to Share Your Story?
+              Ready to Share Your Snap?
             </motion.h2>
             <motion.p
               variants={itemVariants}
               className="text-xl text-white/90 max-w-2xl mx-auto mb-10"
             >
-              Join thousands of people who have shared their side hustle stories on SideHustlingStories and inspire others today.
+              Join thousands of people who have shared their side hustle snaps on SideHustleSnaps and inspire others today.
             </motion.p>
             <motion.div variants={itemVariants}>
               <Button
                 asChild
                 size="lg"
                 className="rounded-full text-lg px-10 bg-white text-primary hover:bg-white/90 hover:text-primary"
-                aria-label="Submit your story"
+                aria-label="Submit your snap"
               >
-                <Link href="/submit-story">Submit Your Story</Link>
+                <Link href="/submit-story">Submit Your Snap</Link>
               </Button>
             </motion.div>
           </motion.div>
@@ -863,3 +814,4 @@ export default function Home() {
     </>
   );
 }
+

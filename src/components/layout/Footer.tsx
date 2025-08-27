@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
+import { useState } from "react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   return (
     <footer className="bg-primary/5 pt-16 pb-8">
@@ -84,34 +86,72 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-medium mb-4 text-lg">Popular Side Hustles</h4>
+            <h4 className="font-medium mb-4 text-lg">Popular Story Categories</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/sidehustles/freelancing" className="text-muted-foreground hover:text-primary transition-colors">
-                  Freelancing
+                <Link 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowComingSoon(true);
+                  }}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Digital & Online
                 </Link>
               </li>
               <li>
-                <Link href="/sidehustles/blogging" className="text-muted-foreground hover:text-primary transition-colors">
-                  Blogging
+                <Link 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowComingSoon(true);
+                  }}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Creative & Design
                 </Link>
               </li>
               <li>
-                <Link href="/sidehustles/ecommerce" className="text-muted-foreground hover:text-primary transition-colors">
-                  E-commerce
+                <Link 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowComingSoon(true);
+                  }}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Freelancing & Services
                 </Link>
               </li>
               <li>
-                <Link href="/sidehustles/online-courses" className="text-muted-foreground hover:text-primary transition-colors">
-                  Online Courses
+                <Link 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowComingSoon(true);
+                  }}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Physical Products
                 </Link>
               </li>
               <li>
-                <Link href="/sidehustles/affiliate-marketing" className="text-muted-foreground hover:text-primary transition-colors">
-                  Affiliate Marketing
+                <Link 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowComingSoon(true);
+                  }}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Finance & Investing
                 </Link>
               </li>
             </ul>
+            {showComingSoon && (
+              <p className="mt-4 text-primary text-sm">Coming Soon</p>
+            )}
           </div>
 
           <div>
