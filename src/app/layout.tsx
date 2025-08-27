@@ -14,14 +14,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SideHustlingStories - Discover the Best Side Hustles",
+  title: "SideHustleSnaps - Discover the Best Side Hustles",
   description: "Explore a comprehensive collection of side hustle opportunities to earn extra income, build new skills, and pursue your passions.",
   keywords: "side hustle, earn extra money, freelancing, online business, passive income",
-  metadataBase: new URL("https://sidehustlingstories.com"),
+  metadataBase: new URL("https://https://sidehustlesnaps.com/"),
   openGraph: {
-    title: "SideHustlingStories - Discover the Best Side Hustles",
+    title: "SideHustleSnaps - Discover the Best Side Hustles",
     description: "Explore side hustles to earn extra income and achieve financial freedom.",
-    url: "https://sidehustlingstories.com",
+    url: "https://https://sidehustlesnaps.com/",
     type: "website",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
   },
@@ -42,11 +42,11 @@ export default function RootLayout({
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebSite",
-            name: "SideHustlingStories",
-            url: "https://sidehustlingstories.com",
+            name: "SideHustleSnaps",
+            url: "https://https://sidehustlesnaps.com/",
             potentialAction: {
               "@type": "SearchAction",
-              target: "https://sidehustlingstories.com/sidehustles?q={search_term_string}",
+              target: "https://https://sidehustlesnaps.com//sidehustles?q={search_term_string}",
               "query-input": "required name=search_term_string",
             },
           })}

@@ -13,7 +13,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-4">
           <div className="space-y-4">
             <h3 className="text-xl font-bold">
-              <span className="text-primary">Side</span>HustlingStories
+              <span className="text-primary">Side</span>HustleSnaps
             </h3>
             <p className="text-sm text-muted-foreground max-w-xs">
               Discover the best side hustle opportunities to earn extra income,
@@ -184,7 +184,7 @@ export function Footer() {
         <Separator className="my-8 opacity-50" />
 
         <div className="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
-          <p>© {currentYear} SideHustlingStories. All rights reserved.</p>
+          <p>© {currentYear} SideHustleSnaps. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link href="/privacy" className="hover:text-primary transition-colors">
               Privacy Policy

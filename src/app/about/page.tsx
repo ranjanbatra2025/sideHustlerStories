@@ -12,19 +12,14 @@ import { useState, useEffect, useRef } from "react";
 
 const teamMembers = [
   {
-    name: "Jane Doe",
+    name: "Ranjan Batra",
     role: "Founder & CEO",
-    bio: "A serial entrepreneur who shares her side hustle journey to inspire others.",
+    bio: "A serial entrepreneur who shares his side hustle journey to inspire others.",
   },
   {
-    name: "John Smith",
-    role: "Co-Founder & CTO",
+    name: "Kartikay Sharma",
+    role: "Tech Lead",
     bio: "A tech enthusiast who built the platform to enable sharing of side hustle stories worldwide.",
-  },
-  {
-    name: "Emily Brown",
-    role: "Head of Content",
-    bio: "A content creator passionate about curating and sharing inspiring side hustle stories.",
   },
 ];
 
@@ -139,14 +134,14 @@ export default function AboutPage() {
           content="Discover the mission, story, and team behind Side Hustle Stories."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://sidehustlestories.com/about" />
+        <meta property="og:url" content="https://sidehustlesnaps.com/about" />
         <meta property="og:image" content="/og-image.jpg" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "AboutPage",
             name: "Side Hustle Stories About",
-            url: "https://sidehustlestories.com/about",
+            url: "https://sidehustlesnaps.com/about",
             publisher: {
               "@type": "Organization",
               name: "Side Hustle Stories",
@@ -452,9 +447,9 @@ export default function AboutPage() {
                   className="bg-background rounded-2xl p-8 card-gradient shadow-md text-center"
                 >
                   <div className="w-32 h-32 bg-primary/10 rounded-full mx-auto mb-6"></div>
-                  <h3 className="text-xl font-bold mb-2">{teamMembers[carouselIndex].name}</h3>
-                  <p className="text-sm text-primary mb-4">{teamMembers[carouselIndex].role}</p>
-                  <p className="text-muted-foreground">{teamMembers[carouselIndex].bio}</p>
+                  <h3 className="text-xl font-bold mb-2">{teamMembers[carouselIndex]?.name}</h3>
+                  <p className="text-sm text-primary mb-4">{teamMembers[carouselIndex]?.role}</p>
+                  <p className="text-muted-foreground">{teamMembers[carouselIndex]?.bio}</p>
                 </motion.div>
               </motion.div>
             </AnimatePresence>
@@ -548,7 +543,7 @@ export default function AboutPage() {
                 className="rounded-full px-8 bg-white text-primary hover:bg-white/90 hover:text-primary search-glow"
                 aria-label="Email us"
               >
-                <Link href="mailto:contact@sidehustlestories.com">
+                <Link href="mailto:contact@sidehustlesnaps.com">
                   <Mail className="h-5 w-5 mr-2" /> Email Us
                 </Link>
               </Button>
@@ -581,4 +576,4 @@ export default function AboutPage() {
       <Footer />
     </>
   );
-}   
+}

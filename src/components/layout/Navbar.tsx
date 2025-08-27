@@ -15,7 +15,6 @@ import { Menu, Search, User } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { debounce } from "lodash";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -82,10 +81,10 @@ export function Navbar() {
     }
   }, [isMobileMenuOpen]);
 
-  // Debounced search handler
-  const handleSearch = debounce((value: string) => {
+  // Search handler (removed debounce for immediate updates)
+  const handleSearch = (value: string) => {
     setSearchQuery(value);
-  }, 300) as (value: string) => void;
+  };
 
   // Handle search submit
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -264,11 +263,11 @@ export function Navbar() {
             >
               <form onSubmit={handleSearchSubmit}>
                 <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/70" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
                     placeholder="Search side hustles..."
-                    className="pl-10 py-6 text-base rounded-full bg-white/10 text-white placeholder:text-white/70 border-white/20 focus:border-primary search-glow"
+                    className="pl-10 py-6 text-base rounded-full bg-muted/10 text-foreground placeholder:text-muted-foreground border-border focus:border-primary search-glow"
                     value={searchQuery}
                     onChange={(e) => handleSearch(e.target.value)}
                     aria-label="Search side hustles by title or description"
