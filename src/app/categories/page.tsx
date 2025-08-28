@@ -13,68 +13,68 @@ import { debounce } from "lodash";
 
 const categories = [
   {
-    id: "digital",
-    name: "Digital & Online",
+    id: "digital-online",
+    name: "Digital & Online Hustles",
     description: "Stories of side hustles that can be done completely online",
-    count: 24,
-    subcategories: ["Blogging", "Social Media", "Digital Products", "SaaS", "Affiliate Marketing"],
+    count: 28,
+    subcategories: ["Freelancing (design, writing, coding, marketing)", "Blogging / YouTube / Podcasting", "Social Media Influencing", "Selling Digital Products (courses, ebooks, templates)", "Print-on-Demand / Dropshipping"],
     date: "2024-01-01",
   },
   {
-    id: "creative",
-    name: "Creative & Design",
-    description: "Stories for creatively inclined individuals",
-    count: 18,
-    subcategories: ["Graphic Design", "Photography", "Video Production", "Writing", "Art"],
+    id: "creative-artistic",
+    name: "Creative & Artistic Hustles",
+    description: "Stories for creatively inclined individuals involving art, media, and crafts",
+    count: 22,
+    subcategories: ["Photography / Videography", "Music / Art / Craft", "Handmade Products (Etsy, local fairs)", "Content Creation (memes, comics, storytelling)"],
     date: "2024-02-01",
   },
   {
-    id: "freelancing",
-    name: "Freelancing & Services",
-    description: "Stories of offering skills and services to clients",
-    count: 22,
-    subcategories: ["Web Development", "Content Creation", "Virtual Assistant", "Consulting", "Marketing"],
-    date: "2023-12-01",
-  },
-  {
-    id: "physical",
-    name: "Physical Products",
-    description: "Stories involving selling or creating physical items",
-    count: 15,
-    subcategories: ["E-commerce", "Handmade Crafts", "Dropshipping", "Print-on-Demand", "Local Selling"],
+    id: "business-entrepreneurship",
+    name: "Business & Entrepreneurship",
+    description: "Stories of starting and running small businesses or entrepreneurial ventures",
+    count: 20,
+    subcategories: ["Small Local Business (food stall, shop, service)", "Online Store / E-commerce", "Import/Export Side Business", "Subscription Services"],
     date: "2024-03-01",
   },
   {
-    id: "finance",
-    name: "Finance & Investing",
-    description: "Stories related to money management and investments",
-    count: 10,
-    subcategories: ["Stock Trading", "Cryptocurrency", "Real Estate", "P2P Lending", "Financial Content Creation"],
+    id: "tech-skills",
+    name: "Tech & Skills-based Hustles",
+    description: "Stories leveraging technical skills, data, teaching, or financial trading",
+    count: 25,
+    subcategories: ["App / Website Development", "AI & Automation Projects", "Data Entry / Virtual Assistance", "Tutoring (online or offline)", "Stock Market / Crypto / Trading"],
     date: "2024-04-01",
   },
   {
-    id: "education",
-    name: "Education & Coaching",
-    description: "Stories focused on teaching and mentoring others",
-    count: 12,
-    subcategories: ["Online Courses", "Tutoring", "Coaching", "Workshops", "Writing Educational Content"],
+    id: "gig-economy",
+    name: "Gig Economy Hustles",
+    description: "Stories from on-demand gigs, delivery, and asset sharing",
+    count: 18,
+    subcategories: ["Ride-Sharing (Uber, Ola, Lyft)", "Food & Grocery Delivery (Zomato, Swiggy, DoorDash)", "Task-based Gigs (TaskRabbit, Fiverr small jobs)", "Renting Assets (car, room, tools, camera gear)"],
     date: "2024-05-01",
   },
   {
-    id: "misc",
-    name: "Miscellaneous",
-    description: "Other unique and interesting side hustle stories",
-    count: 8,
-    subcategories: ["Rental Business", "Task Services", "Local Services", "Event Planning", "Seasonal Work"],
+    id: "passive-income",
+    name: "Passive Income Hustles",
+    description: "Stories that generate income with minimal ongoing effort",
+    count: 15,
+    subcategories: ["Affiliate Marketing", "Real Estate (Airbnb, renting space)", "Dividend / Stock Investments", "Automated E-commerce"],
     date: "2024-06-01",
   },
   {
-    id: "passive",
-    name: "Passive Income",
-    description: "Stories that generate income with minimal ongoing work",
-    count: 16,
-    subcategories: ["Dividend Investing", "Content Royalties", "Apps & Software", "Print-on-Demand", "Automated Digital Products"],
+    id: "lifestyle-service",
+    name: "Lifestyle & Service Hustles",
+    description: "Stories offering personal services related to health, home, and events",
+    count: 19,
+    subcategories: ["Fitness Training / Yoga / Dance Classes", "Cooking / Baking / Meal Prep", "Pet Sitting / Dog Walking", "Event Planning / Photography", "Cleaning / Repair Services"],
     date: "2024-07-01",
+  },
+  {
+    id: "student-parttime",
+    name: "Student & Part-time Friendly Hustles",
+    description: "Stories suitable for students or those seeking flexible part-time options",
+    count: 21,
+    subcategories: ["Tutoring & Coaching", "Campus-based hustles (notes selling, stationery)", "Reselling (clothes, sneakers, gadgets)", "Gaming & Streaming"],
+    date: "2024-08-01",
   },
 ];
 
@@ -405,19 +405,19 @@ export default function CategoriesPage() {
             variants={itemVariants}
             className="text-3xl md:text-4xl font-bold mb-6 text-center"
           >
-            Featured Category: Digital & Online
+            Featured Category: Digital & Online Hustles
           </motion.h2>
           <motion.p variants={itemVariants} className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 text-center">
             Discover inspiring stories of side hustles that you can start from anywhere with just a laptop and an internet connection.
           </motion.p>
           <motion.div variants={itemVariants}>
-            <Link href="/categories/digital" className="block">
+            <Link href="/stories?category=digital-online" className="block">
               <Card className="card-gradient border-0 shadow-lg h-full transition-all duration-300">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    Digital & Online
+                    Digital & Online Hustles
                     <span className="text-sm font-normal bg-primary/10 text-primary px-3 py-1 rounded-full">
-                      24
+                      28
                     </span>
                   </CardTitle>
                   <CardDescription className="text-base">
@@ -436,7 +436,7 @@ export default function CategoriesPage() {
                     ))}
                   </div>
                   <p className="text-muted-foreground">
-                    From blogging to SaaS, explore inspiring stories that leverage the power of the internet.
+                    From freelancing to digital products, explore inspiring stories that leverage the power of the internet.
                   </p>
                 </CardContent>
                 <CardFooter>
@@ -444,7 +444,7 @@ export default function CategoriesPage() {
                     asChild
                     variant="default"
                     className="w-full rounded-full"
-                    aria-label="Explore Digital & Online category"
+                    aria-label="Explore Digital & Online Hustles category"
                   >
                     <div>
                       <span>Explore Stories</span>
@@ -511,4 +511,4 @@ export default function CategoriesPage() {
       <Footer />
     </>
   );
-} 
+}
