@@ -1,3 +1,4 @@
+// app/stories/page.tsx
 "use client";
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
@@ -52,7 +53,7 @@ const cardVariants = {
     opacity: 1,
     scale: 1,
     rotate: 0,
-    transition: { duration: 0.6, ease: "easeOut", type: "spring", stiffness: 100 },
+    transition: { duration: 0.6, ease: "easeOut" as const, type: "spring" as const, stiffness: 100 },
   },
   hover: {
     scale: 1.03,
@@ -144,12 +145,12 @@ export default function SideHustleStoriesPage() {
         <motion.div
           className="absolute top-20 right-10 w-64 h-64 rounded-full bg-primary/20 blur-3xl pointer-events-none"
           animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 7, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+          transition={{ duration: 7, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" as const }}
         />
         <motion.div
           className="absolute bottom-20 left-10 w-72 h-72 rounded-full bg-blue-500/20 blur-3xl pointer-events-none"
           animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.35, 0.2] }}
-          transition={{ duration: 6, repeat: Infinity, repeatType: "reverse", ease: "easeInOut", delay: 1 }}
+          transition={{ duration: 6, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" as const, delay: 1 }}
         />
       </section>
       {/* Stories Grid */}

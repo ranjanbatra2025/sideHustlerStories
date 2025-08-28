@@ -1,3 +1,4 @@
+// app/about/page.tsx
 "use client";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -92,7 +93,7 @@ export default function AboutPage() {
       opacity: 1,
       scale: 1,
       rotate: 0,
-      transition: { duration: 0.6, ease: "easeOut", type: "spring", stiffness: 100 },
+      transition: { duration: 0.6, ease: "easeOut" as const, type: "spring" as const, stiffness: 100 },
     },
     hover: {
       scale: 1.05,
@@ -103,7 +104,7 @@ export default function AboutPage() {
 
   const timelineVariants = {
     hidden: { opacity: 0, x: -50 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
   };
 
   const headerTextVariants = {
@@ -359,7 +360,7 @@ export default function AboutPage() {
                 <motion.div
                   className="z-10 w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center font-bold"
                   whileHover={{ scale: 1.2, rotate: 10 }}
-                  transition={{ type: "spring", stiffness: 200 }}
+                  transition={{ type: "spring" as const, stiffness: 200 }}
                 >
                   {event.year}
                 </motion.div>
@@ -515,7 +516,7 @@ export default function AboutPage() {
             <motion.div
               className="mb-6"
               animate={{ rotate: [0, 360] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 10, repeat: Infinity, ease: "linear" as const }}
             >
               <Mail className="h-12 w-12 mx-auto text-white/90" />
             </motion.div>

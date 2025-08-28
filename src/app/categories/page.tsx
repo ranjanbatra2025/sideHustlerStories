@@ -1,3 +1,4 @@
+// app/categories/page.tsx
 "use client";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -8,81 +9,25 @@ import { ArrowRight, ChevronRight, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion, useInView } from "framer-motion";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { debounce } from "lodash";
 
-const categories = [
-  {
-    id: "digital-online",
-    name: "Digital & Online Hustles",
-    description: "Stories of side hustles that can be done completely online",
-    count: 28,
-    subcategories: ["Freelancing (design, writing, coding, marketing)", "Blogging / YouTube / Podcasting", "Social Media Influencing", "Selling Digital Products (courses, ebooks, templates)", "Print-on-Demand / Dropshipping"],
-    date: "2024-01-01",
-  },
-  {
-    id: "creative-artistic",
-    name: "Creative & Artistic Hustles",
-    description: "Stories for creatively inclined individuals involving art, media, and crafts",
-    count: 22,
-    subcategories: ["Photography / Videography", "Music / Art / Craft", "Handmade Products (Etsy, local fairs)", "Content Creation (memes, comics, storytelling)"],
-    date: "2024-02-01",
-  },
-  {
-    id: "business-entrepreneurship",
-    name: "Business & Entrepreneurship",
-    description: "Stories of starting and running small businesses or entrepreneurial ventures",
-    count: 20,
-    subcategories: ["Small Local Business (food stall, shop, service)", "Online Store / E-commerce", "Import/Export Side Business", "Subscription Services"],
-    date: "2024-03-01",
-  },
-  {
-    id: "tech-skills",
-    name: "Tech & Skills-based Hustles",
-    description: "Stories leveraging technical skills, data, teaching, or financial trading",
-    count: 25,
-    subcategories: ["App / Website Development", "AI & Automation Projects", "Data Entry / Virtual Assistance", "Tutoring (online or offline)", "Stock Market / Crypto / Trading"],
-    date: "2024-04-01",
-  },
-  {
-    id: "gig-economy",
-    name: "Gig Economy Hustles",
-    description: "Stories from on-demand gigs, delivery, and asset sharing",
-    count: 18,
-    subcategories: ["Ride-Sharing (Uber, Ola, Lyft)", "Food & Grocery Delivery (Zomato, Swiggy, DoorDash)", "Task-based Gigs (TaskRabbit, Fiverr small jobs)", "Renting Assets (car, room, tools, camera gear)"],
-    date: "2024-05-01",
-  },
-  {
-    id: "passive-income",
-    name: "Passive Income Hustles",
-    description: "Stories that generate income with minimal ongoing effort",
-    count: 15,
-    subcategories: ["Affiliate Marketing", "Real Estate (Airbnb, renting space)", "Dividend / Stock Investments", "Automated E-commerce"],
-    date: "2024-06-01",
-  },
-  {
-    id: "lifestyle-service",
-    name: "Lifestyle & Service Hustles",
-    description: "Stories offering personal services related to health, home, and events",
-    count: 19,
-    subcategories: ["Fitness Training / Yoga / Dance Classes", "Cooking / Baking / Meal Prep", "Pet Sitting / Dog Walking", "Event Planning / Photography", "Cleaning / Repair Services"],
-    date: "2024-07-01",
-  },
-  {
-    id: "student-parttime",
-    name: "Student & Part-time Friendly Hustles",
-    description: "Stories suitable for students or those seeking flexible part-time options",
-    count: 21,
-    subcategories: ["Tutoring & Coaching", "Campus-based hustles (notes selling, stationery)", "Reselling (clothes, sneakers, gadgets)", "Gaming & Streaming"],
-    date: "2024-08-01",
-  },
-];
+interface Category {
+  id: string;
+  name: string;
+  description: string;
+  count: number;
+  subcategories: string[];
+  date: string;
+}
 
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("count"); // "count", "name" or "date"
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const headerRef = useRef(null);
   const categoriesRef = useRef(null);
@@ -113,7 +58,7 @@ export default function CategoriesPage() {
       opacity: 1,
       scale: 1,
       rotate: 0,
-      transition: { duration: 0.6, ease: "easeOut", type: "spring", stiffness: 100 },
+      transition: { duration: 0.6, ease: "easeOut" as const, type: "spring" as const, stiffness: 100 },
     },
     hover: {
       scale: 1.05,
@@ -122,6 +67,24 @@ export default function CategoriesPage() {
       transition: { duration: 0.3 },
     },
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        const data: Category[] = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleSearch = debounce((value) => {
     setSearchTerm(value.toLowerCase());
@@ -144,7 +107,11 @@ export default function CategoriesPage() {
     }
 
     return result;
-  }, [searchTerm, sortBy]);
+  }, [searchTerm, sortBy, categories]);
+
+  const featuredCategory = useMemo(() => 
+    categories.find(cat => cat.id === "digital-online") || categories[0],
+  [categories]);
 
   return (
     <>
@@ -295,7 +262,14 @@ export default function CategoriesPage() {
           >
             Side Hustle Story Categories
           </motion.h2>
-          {filteredCategories.length === 0 ? (
+          {loading ? (
+            <motion.p
+              variants={itemVariants}
+              className="text-center text-lg text-muted-foreground"
+            >
+              Loading categories...
+            </motion.p>
+          ) : filteredCategories.length === 0 ? (
             <motion.p
               variants={itemVariants}
               className="text-center text-lg text-muted-foreground"
@@ -405,28 +379,28 @@ export default function CategoriesPage() {
             variants={itemVariants}
             className="text-3xl md:text-4xl font-bold mb-6 text-center"
           >
-            Featured Category: Digital & Online Hustles
+            Featured Category: {featuredCategory?.name || "Digital & Online Hustles"}
           </motion.h2>
           <motion.p variants={itemVariants} className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 text-center">
             Discover inspiring stories of side hustles that you can start from anywhere with just a laptop and an internet connection.
           </motion.p>
           <motion.div variants={itemVariants}>
-            <Link href="/stories?category=digital-online" className="block">
+            <Link href={`/stories?category=${featuredCategory?.id || "digital-online"}`} className="block">
               <Card className="card-gradient border-0 shadow-lg h-full transition-all duration-300">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    Digital & Online Hustles
+                    {featuredCategory?.name || "Digital & Online Hustles"}
                     <span className="text-sm font-normal bg-primary/10 text-primary px-3 py-1 rounded-full">
-                      28
+                      {featuredCategory?.count || 28}
                     </span>
                   </CardTitle>
                   <CardDescription className="text-base">
-                    Stories of side hustles that can be done completely online
+                    {featuredCategory?.description || "Stories of side hustles that can be done completely online"}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {categories[0].subcategories.map((subcategory) => (
+                    {(featuredCategory?.subcategories || []).map((subcategory) => (
                       <span
                         key={subcategory}
                         className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/20 text-primary"
@@ -444,7 +418,7 @@ export default function CategoriesPage() {
                     asChild
                     variant="default"
                     className="w-full rounded-full"
-                    aria-label="Explore Digital & Online Hustles category"
+                    aria-label={`Explore ${featuredCategory?.name || "Digital & Online Hustles"} category`}
                   >
                     <div>
                       <span>Explore Stories</span>

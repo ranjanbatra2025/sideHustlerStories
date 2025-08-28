@@ -1,11 +1,36 @@
+// components/layout/Footer.tsx
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        const data = await response.json();
+        setCategories(data.slice(0, 5)); // Limit to 5 categories for footer
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <footer className="bg-primary/5 pt-16 pb-8">
@@ -87,70 +112,21 @@ export function Footer() {
 
           <div>
             <h4 className="font-medium mb-4 text-lg">Popular Story Categories</h4>
-            <ul className="space-y-3">
-              <li>
-                <Link 
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowComingSoon(true);
-                  }}
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Digital & Online
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowComingSoon(true);
-                  }}
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Creative & Design
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowComingSoon(true);
-                  }}
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Freelancing & Services
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowComingSoon(true);
-                  }}
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Physical Products
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowComingSoon(true);
-                  }}
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Finance & Investing
-                </Link>
-              </li>
-            </ul>
-            {showComingSoon && (
-              <p className="mt-4 text-primary text-sm">Coming Soon</p>
+            {loading ? (
+              <p className="text-muted-foreground">Loading categories...</p>
+            ) : (
+              <ul className="space-y-3">
+                {categories.map((category) => (
+                  <li key={category.id}>
+                    <Link 
+                      href={`/stories?category=${category.id}`}
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {category.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
 
@@ -159,22 +135,22 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link href="/resources/tools" className="text-muted-foreground hover:text-primary transition-colors">
-                  Tools & Software
+                  Tools for Side Hustlers
                 </Link>
               </li>
               <li>
                 <Link href="/resources/guides" className="text-muted-foreground hover:text-primary transition-colors">
-                  Guides
+                  Side Hustle Guides
                 </Link>
               </li>
               <li>
                 <Link href="/resources/case-studies" className="text-muted-foreground hover:text-primary transition-colors">
-                  Success Stories
+                  Side Hustle Success Stories
                 </Link>
               </li>
               <li>
                 <Link href="/resources/faqs" className="text-muted-foreground hover:text-primary transition-colors">
-                  FAQs
+                  Side Hustle FAQs
                 </Link>
               </li>
             </ul>

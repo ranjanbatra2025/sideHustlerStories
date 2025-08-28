@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Menu, Search, User } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -108,23 +108,23 @@ export function Navbar() {
   };
 
   // Animation variants
-  const navbarVariants = {
+  const navbarVariants: Variants = {
     hidden: { y: -100, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: [0, 0, 0.58, 1] } },
   };
 
-  const modalVariants = {
+  const modalVariants: Variants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
   };
 
-  const mobileMenuVariants = {
+  const mobileMenuVariants: Variants = {
     hidden: { x: "100%", opacity: 0 },
-    visible: { x: 0, opacity: 1, transition: { duration: 0.4, ease: "easeOut" } },
+    visible: { x: 0, opacity: 1, transition: { duration: 0.4, ease: [0, 0, 0.58, 1] } },
   };
 
   // Mobile menu item variants
-  const mobileMenuItemVariants = {
+  const mobileMenuItemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   };

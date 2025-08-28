@@ -21,15 +21,16 @@ import { type Story } from "@/lib/stories";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [featuredIndex, setFeaturedIndex] = useState(0);
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [particleStyles, setParticleStyles] = useState<{ left: string; top: string; animationDelay: string; animationDuration: string; }[]>([]);
   const [animatedStats, setAnimatedStats] = useState([0, 0, 0]);
+  const [showComingSoon, setShowComingSoon] = useState(false); // Added for CTA
 
   const [stories, setStories] = useState<Story[]>([]);
   const [categoriesData, setCategoriesData] = useState<{ id: string; name: string; count: number }[]>([]);
   const [testimonialsData, setTestimonialsData] = useState<{ quote: string; author: string; rating: number }[]>([]);
   const [statsData, setStatsData] = useState({ inspiredReaders: 0, storiesShared: 0, totalEarnings: 0 });
+  const [loading, setLoading] = useState(true); // Added loading state
 
   const heroRef = useRef(null);
   const featuredRef = useRef(null);
@@ -79,6 +80,8 @@ export default function Home() {
         if (statsRes.ok) setStatsData(await statsRes.json());
       } catch (error) {
         console.error("Failed to fetch data:", error);
+      } finally {
+        setLoading(false); // Set loading to false after fetch
       }
     };
     fetchAllData();
@@ -360,14 +363,14 @@ export default function Home() {
               Discover some of the most inspiring side hustle snaps.
             </motion.p>
           </motion.div>
-          <motion.div
-            className="relative overflow-hidden"
-            variants={containerVariants}
-          >
+          {loading ? (
+            <div className="text-center text-muted-foreground">Loading featured snaps...</div>
+          ) : featuredStories.length === 0 ? (
+            <div className="text-center text-muted-foreground">No featured snaps available yet.</div>
+          ) : (
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-              animate={{ x: `-${featuredIndex * 100}%` }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
+              variants={containerVariants}
             >
               {featuredStories.map((story) => (
                 <motion.div 
@@ -376,7 +379,6 @@ export default function Home() {
                   initial="hidden"
                   animate="visible"
                   whileHover="hover"
-                  className="min-w-full lg:min-w-[calc(25%-1.5rem)]"
                 >
                   <Card className="card-gradient border-neutral-200 dark:border-neutral-800 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col bg-card">
                     <Image
@@ -416,20 +418,7 @@ export default function Home() {
                 </motion.div>
               ))}
             </motion.div>
-            <motion.div
-              className="flex justify-center gap-2 mt-6"
-              variants={itemVariants}
-            >
-              {featuredStories.map((_, index) => (
-                <button
-                  key={index}
-                  className={`h-2 w-2 rounded-full ${index === featuredIndex ? "bg-primary" : "bg-muted"}`}
-                  onClick={() => setFeaturedIndex(index)}
-                  aria-label={`Go to featured snap ${index + 1}`}
-                />
-              ))}
-            </motion.div>
-          </motion.div>
+          )}
           <motion.div
             variants={itemVariants}
             className="text-center mt-14"
@@ -560,30 +549,34 @@ export default function Home() {
           >
             Platform Statistics
           </motion.h2>
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
-            variants={containerVariants}
-          >
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                className="flex flex-col items-center"
-              >
+          {loading ? (
+            <div className="text-center text-muted-foreground">Loading stats...</div>
+          ) : (
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
+              variants={containerVariants}
+            >
+              {stats.map((stat, index) => (
                 <motion.div
-                  className="mb-4"
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatType: "loop" }}
+                  key={index}
+                  variants={itemVariants}
+                  className="flex flex-col items-center"
                 >
-                  {stat.icon}
+                  <motion.div
+                    className="mb-4"
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatType: "loop" }}
+                  >
+                    {stat.icon}
+                  </motion.div>
+                  <h3 className="text-3xl font-bold">
+                    {Math.round(animatedStats[index]).toLocaleString()}+
+                  </h3>
+                  <p className="text-muted-foreground">{stat.label}</p>
                 </motion.div>
-                <h3 className="text-3xl font-bold">
-                  {Math.round(animatedStats[index]).toLocaleString()}+
-                </h3>
-                <p className="text-muted-foreground">{stat.label}</p>
-              </motion.div>
-            ))}
-          </motion.div>
+              ))}
+            </motion.div>
+          )}
         </motion.div>
       </section>
 
@@ -623,48 +616,54 @@ export default function Home() {
               Hear from real people who’ve been inspired by SideHustleSnaps.
             </motion.p>
           </motion.div>
-          <motion.div
-            className="relative overflow-hidden"
-            variants={containerVariants}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={testimonialIndex}
-                className="flex justify-center"
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Card className="card-gradient border-0 shadow-md max-w-lg">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-center mb-4">
-                      {Array.from({ length: testimonials[testimonialIndex]?.rating || 0 }).map((_, i) => (
-                        <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                      ))}
-                    </div>
-                    <p className="text-lg text-center italic">“{testimonials[testimonialIndex]?.quote}”</p>
-                  </CardContent>
-                  <CardFooter className="justify-center">
-                    <p className="text-sm text-muted-foreground">{testimonials[testimonialIndex]?.author}</p>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            </AnimatePresence>
+          {loading ? (
+            <div className="text-center text-muted-foreground">Loading testimonials...</div>
+          ) : testimonials.length === 0 ? (
+            <div className="text-center text-muted-foreground">No testimonials available yet.</div>
+          ) : (
             <motion.div
-              className="flex justify-center gap-2 mt-6"
-              variants={itemVariants}
+              className="relative overflow-hidden"
+              variants={containerVariants}
             >
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  className={`h-2 w-2 rounded-full ${index === testimonialIndex ? "bg-primary" : "bg-muted"}`}
-                  onClick={() => setTestimonialIndex(index)}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={testimonialIndex}
+                  className="flex justify-center"
+                  initial={{ opacity: 0, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Card className="card-gradient border-0 shadow-md max-w-lg">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-center mb-4">
+                        {Array.from({ length: testimonials[testimonialIndex]?.rating || 0 }).map((_, i) => (
+                          <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                        ))}
+                      </div>
+                      <p className="text-lg text-center italic">“{testimonials[testimonialIndex]?.quote}”</p>
+                    </CardContent>
+                    <CardFooter className="justify-center">
+                      <p className="text-sm text-muted-foreground">{testimonials[testimonialIndex]?.author}</p>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              </AnimatePresence>
+              <motion.div
+                className="flex justify-center gap-2 mt-6"
+                variants={itemVariants}
+              >
+                {testimonials.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`h-2 w-2 rounded-full ${index === testimonialIndex ? "bg-primary" : "bg-muted"}`}
+                    onClick={() => setTestimonialIndex(index)}
+                    aria-label={`Go to testimonial ${index + 1}`}
+                  />
+                ))}
+              </motion.div>
             </motion.div>
-          </motion.div>
+          )}
         </motion.div>
       </section>
 
@@ -704,38 +703,44 @@ export default function Home() {
               Find inspiring snaps based on different types of side hustles.
             </motion.p>
           </motion.div>
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            variants={containerVariants}
-          >
-            {categories.map((category) => (
-              <motion.div
-                key={category.id}
-                variants={categoryCardVariants}
-                initial="hidden"
-                animate="visible"
-                whileHover="hover"
-              >
-                <Link href={`/stories?category=${category.id}`} className="block">
-                  <Card className="card-gradient border-0 shadow-sm h-full">
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        {category.name}
-                        <span className="text-sm font-normal bg-primary/10 text-primary px-3 py-1 rounded-full">
-                          {category.count}
-                        </span>
-                      </CardTitle>
-                      <CardDescription>Explore snaps in this category</CardDescription>
-                    </CardHeader>
-                    <CardFooter className="flex justify-between text-primary pt-0">
-                      <span className="text-sm font-medium">View Snaps</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </CardFooter>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+          {loading ? (
+            <div className="text-center text-muted-foreground">Loading categories...</div>
+          ) : categories.length === 0 ? (
+            <div className="text-center text-muted-foreground">No categories available yet.</div>
+          ) : (
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+            >
+              {categories.map((category) => (
+                <motion.div
+                  key={category.id}
+                  variants={categoryCardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover="hover"
+                >
+                  <Link href={`/stories?category=${category.id}`} className="block">
+                    <Card className="card-gradient border-0 shadow-sm h-full">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          {category.name}
+                          <span className="text-sm font-normal bg-primary/10 text-primary px-3 py-1 rounded-full">
+                            {category.count}
+                          </span>
+                        </CardTitle>
+                        <CardDescription>Explore snaps in this category</CardDescription>
+                      </CardHeader>
+                      <CardFooter className="flex justify-between text-primary pt-0">
+                        <span className="text-sm font-medium">View Snaps</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </CardFooter>
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </motion.div>
       </section>
 
@@ -788,13 +793,22 @@ export default function Home() {
             </motion.p>
             <motion.div variants={itemVariants}>
               <Button
-                asChild
                 size="lg"
                 className="rounded-full text-lg px-10 bg-white text-primary hover:bg-white/90 hover:text-primary"
                 aria-label="Submit your snap"
+                onClick={() => setShowComingSoon(true)}
               >
-                <Link href="/submit-story">Submit Your Snap</Link>
+                Submit Your Snap
               </Button>
+              {showComingSoon && (
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 text-lg text-white"
+                >
+                  Coming Soon
+                </motion.p>
+              )}
             </motion.div>
           </motion.div>
         </motion.div>
@@ -814,4 +828,3 @@ export default function Home() {
     </>
   );
 }
-
