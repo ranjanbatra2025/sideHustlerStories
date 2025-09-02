@@ -8,10 +8,10 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function GET() {
   try {
-    // Fetch all categories with full details
+    // Fetch all categories with full details, including icon and color
     const { data: categories, error: catError } = await supabase
       .from('categories')
-      .select('id, name, description, subcategories, date')
+      .select('id, name, description, subcategories, date, icon, color')
       .order('date', { ascending: true });
 
     if (catError) throw catError;

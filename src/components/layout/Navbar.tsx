@@ -1,3 +1,4 @@
+// navbar
 "use client";
 
 import Link from "next/link";
@@ -13,18 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Menu, Search, User } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/categories", label: "Categories" },
-  { href: "/stories", label: "Stories" },
-  { href: "/about", label: "About" },
-];
+import { useSupabase } from "@/components/context/SupabaseProvider";  // New import for Supabase
 
 export function Navbar() {
-  const { data: session, status } = useSession();
+  const { session, signOut } = useSupabase();  // Replaces useSession
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -33,6 +27,18 @@ export function Navbar() {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // Define nav links conditionally
+  let navLinks = [
+    { href: "/categories", label: "Categories" },
+    { href: "/stories", label: "Stories" },
+    { href: "/about", label: "About" },
+  ];
+  if (session) {
+    navLinks = [{ href: "/dashboard", label: "Dashboard" }, ...navLinks];
+  } else {
+    navLinks = [{ href: "/", label: "Home" }, ...navLinks];
+  }
 
   // Scroll handler
   useEffect(() => {
@@ -100,7 +106,8 @@ export function Navbar() {
   const handleSignOut = async () => {
     setIsSigningOut(true);
     try {
-      await signOut({ callbackUrl: "/" });
+      await signOut();  // Supabase signOut (redirect handled in provider)
+      router.push("/");
     } finally {
       setIsSigningOut(false);
       setIsMobileMenuOpen(false);
@@ -144,7 +151,7 @@ export function Navbar() {
       >
         <div className="container flex items-center justify-between mx-auto">
           <Link
-            href="/"
+            href={session ? "/dashboard" : "/"}
             className={cn(
               "text-2xl font-bold transition-all duration-300",
               isScrolled ? "text-foreground" : "text-foreground"
@@ -189,7 +196,7 @@ export function Navbar() {
               >
                 <Search className="h-5 w-5" />
               </Button>
-              {status === "loading" ? (
+              {session === undefined ? (  // Replaces status === "loading"
                 <Button
                   variant="ghost"
                   className="rounded-full px-6 animate-pulse"
@@ -311,7 +318,7 @@ export function Navbar() {
           >
             <div className="flex justify-between items-center mb-8">
               <Link
-                href="/"
+                href={session ? "/dashboard" : "/"}
                 className="text-2xl font-bold text-foreground"
                 onClick={() => setIsMobileMenuOpen(false)}
                 aria-label="Side Hustle Snaps Home"
@@ -347,7 +354,7 @@ export function Navbar() {
                 </motion.div>
               ))}
               <motion.div variants={mobileMenuItemVariants} initial="hidden" animate="visible">
-                {status === "loading" ? (
+                {session === undefined ? (  // Replaces status === "loading"
                   <Button
                     variant="ghost"
                     className="text-lg font-medium text-foreground animate-pulse"

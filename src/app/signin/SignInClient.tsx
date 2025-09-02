@@ -1,13 +1,15 @@
+// sign in page
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { useCallback, useMemo, useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { createBrowserClient } from "@supabase/ssr";  // Updated import
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { Session } from "@supabase/supabase-js";
 
 // Animation variants for framer-motion
 const containerVariants = {
@@ -25,23 +27,53 @@ const itemVariants = {
 
 export default function SignInClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const callbackUrl = useMemo(
-    () => searchParams.get("callbackUrl") || "/",
+    () => searchParams.get("callbackUrl") || "/dashboard",
     [searchParams]
   );
 
   const [isLoading, setIsLoading] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  useEffect(() => {
+    async function fetchSession() {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    }
+    fetchSession();
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      router.push("/dashboard");
+    }
+  }, [session, router]);
 
   const handleSignIn = useCallback(async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl });
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`,
+        },
+      });
     } catch (error) {
       console.error("Sign-in error:", error);
     } finally {
       setIsLoading(false);
     }
   }, [callbackUrl]);
+
+  if (session) {
+    return null; // Or a loading spinner if preferred
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background gradient-bg particle-bg relative overflow-hidden">

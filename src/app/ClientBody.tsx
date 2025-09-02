@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { SessionProvider } from "next-auth/react";
+import { SupabaseProvider } from "@/components/context/SupabaseProvider";
 
 export default function ClientBody({
   children,
@@ -15,8 +15,8 @@ export default function ClientBody({
   }, []);
 
   return (
-    <SessionProvider>
+    <SupabaseProvider>
       <div className="antialiased">{children}</div>
-    </SessionProvider>
+    </SupabaseProvider>
   );
 }

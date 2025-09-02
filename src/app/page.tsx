@@ -16,10 +16,14 @@ import { debounce } from "lodash";
 import Image from "next/image";
 
 import { type Story } from "@/lib/stories";
+import { useSupabase } from "@/components/context/SupabaseProvider";
 
 // No more static import for stories data
 
 export default function Home() {
+  const { session } = useSupabase();
+  const router = useRouter();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [particleStyles, setParticleStyles] = useState<{ left: string; top: string; animationDelay: string; animationDuration: string; }[]>([]);
@@ -49,8 +53,6 @@ export default function Home() {
   const isCategoriesInView = useInView(categoriesRef, { once: true, amount: 0.2 });
   const isCtaInView = useInView(ctaRef, { once: true, amount: 0.2 });
 
-  const router = useRouter();
-
   const featuredStories = useMemo(() => stories.slice(0, 4), [stories]);
   const categories = categoriesData;
   const testimonials = testimonialsData;
@@ -63,29 +65,38 @@ export default function Home() {
     [statsData]
   );
 
-  // Fetch all data in parallel
+  // Redirect if authenticated
   useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        const [storiesRes, categoriesRes, testimonialsRes, statsRes] = await Promise.all([
-          fetch("/api/stories"),
-          fetch("/api/categories"),
-          fetch("/api/testimonials"),
-          fetch("/api/stats"),
-        ]);
+    if (session) {
+      router.push("/dashboard");
+    }
+  }, [session, router]);
 
-        if (storiesRes.ok) setStories(await storiesRes.json());
-        if (categoriesRes.ok) setCategoriesData(await categoriesRes.json());
-        if (testimonialsRes.ok) setTestimonialsData(await testimonialsRes.json());
-        if (statsRes.ok) setStatsData(await statsRes.json());
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      } finally {
-        setLoading(false); // Set loading to false after fetch
-      }
-    };
-    fetchAllData();
-  }, []);
+  // Fetch all data in parallel (only if not authenticated)
+  useEffect(() => {
+    if (!session) {
+      const fetchAllData = async () => {
+        try {
+          const [storiesRes, categoriesRes, testimonialsRes, statsRes] = await Promise.all([
+            fetch("/api/stories"),
+            fetch("/api/categories"),
+            fetch("/api/testimonials"),
+            fetch("/api/stats"),
+          ]);
+
+          if (storiesRes.ok) setStories(await storiesRes.json());
+          if (categoriesRes.ok) setCategoriesData(await categoriesRes.json());
+          if (testimonialsRes.ok) setTestimonialsData(await testimonialsRes.json());
+          if (statsRes.ok) setStatsData(await statsRes.json());
+        } catch (error) {
+          console.error("Failed to fetch data:", error);
+        } finally {
+          setLoading(false); // Set loading to false after fetch
+        }
+      };
+      fetchAllData();
+    }
+  }, [session]);
 
   // Generate client-side particle styles to avoid hydration errors (reduced to 10 particles)
   useEffect(() => {
@@ -190,6 +201,10 @@ export default function Home() {
       transition: { delay: i * 0.05, duration: 0.3 },
     }),
   };
+
+  if (session) {
+    return null; // Or a loading spinner if preferred
+  }
 
   return (
     <>

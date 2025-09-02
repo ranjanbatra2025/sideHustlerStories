@@ -1,0 +1,697 @@
+'use client';
+
+import React, { useState, useMemo, useEffect } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+import { Eye, Target, Flame, Bookmark, TrendingUp, Clock, ChevronRight, Trophy, Search, PlusCircle, Share2, Heart, Zap, Play, Star, Users } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+
+const SideHustleSnapsDashboard = () => {
+  const [userName, setUserName] = useState('User');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [stories, setStories] = useState<any[]>([]);
+  const [currentQuote, setCurrentQuote] = useState(0);
+  const [savedStories, setSavedStories] = useState<Set<number>>(new Set());
+  const [readStories, setReadStories] = useState<any[]>([]); // Change to array for read_at
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilter, setActiveFilter] = useState('Popular');
+  const [showComingSoon, setShowComingSoon] = useState(false);
+  const router = useRouter();
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const motivationalQuotes = [
+    "Every expert was once a beginner. Every pro was once an amateur.",
+    "Your side hustle is your ticket to financial freedom.",
+    "Dreams don't work unless you take action.",
+    "The best time to start was yesterday. The second best time is now.",
+    "Success is not final, failure is not fatal: it is the courage to continue that counts."
+  ];
+
+  const hustleFacts = [
+    "Airbnb was started as a way to pay rent by renting air mattresses!",
+    "Uber began when the founders couldn't get a taxi in Paris.",
+    "Sara Blakely started Spanx with just $5,000 and became a billionaire.",
+    "Jan Koum was rejected by Facebook before selling WhatsApp to them for $19B.",
+    "The average millionaire has 7 different income streams."
+  ];
+
+  const categoryEmojis: { [key: string]: string } = {
+    'e-commerce': '🛒',
+    'digital-products': '📱',
+    'freelancing': '💼',
+    'creative-services': '🎨',
+    'tech-hustles': '💻',
+    'lifestyle-service': '🏡',
+    'content-creation': '📹',
+  };
+
+  const badges = [
+    { name: "First 5 Stories", icon: "🌟", earned: false, description: "Read your first 5 stories" },
+    { name: "7-Day Streak", icon: "🔥", earned: false, description: "Read stories for 7 days straight" },
+    { name: "Category Explorer", icon: "🗺️", earned: false, description: "Explore all categories" },
+    { name: "Story Saver", icon: "💾", earned: false, description: "Save 10 stories" },
+    { name: "Community Member", icon: "👥", earned: false, description: "Share your first story" }
+  ];
+
+  const [weeklyStats, setWeeklyStats] = useState({
+    storiesRead: 0,
+    categoriesExplored: 0,
+    readingStreak: 0,
+    totalViews: "2.1K"
+  });
+
+  const [communityInsights, setCommunityInsights] = useState({
+    mostViewed: '',
+    topCategory: '',
+    motivationMeter: 0,
+  });
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        setUserName(profile?.full_name || 'User');
+      } else {
+        window.location.href = '/signin';
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        const data = await response.json();
+        const sortedData = data.sort((a: { count: number }, b: { count: number }) => b.count - a.count);
+        setCategories(sortedData);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch stories
+  useEffect(() => {
+    const fetchStories = async () => {
+      const { data, error } = await supabase.from('stories').select('*').order('rating', { ascending: false });
+      if (data) {
+        const processedStories = data.map(s => ({
+          ...s,
+          category: s.category,
+          readTime: `${Math.ceil(s.story.split(' ').length / 200)} min`,
+          viewsStr: s.views ? `${(s.views / 1000).toFixed(1)}K` : '1K',
+          views: s.views || 1000,
+          trending: s.rating > 4.7,
+          image: categoryEmojis[s.category] || '📖',
+          snippet: s.story.slice(0, 100) + '...'
+        }));
+
+        setStories(processedStories);
+
+        // Compute community insights
+        if (data.length > 0) {
+          const sortedByViews = [...processedStories].sort((a, b) => b.views - a.views);
+          const categoryViews = processedStories.reduce((acc: any, s) => {
+            acc[s.category] = (acc[s.category] || 0) + s.views;
+            return acc;
+          }, {});
+          const topCatEntry = Object.entries(categoryViews).sort((a: any, b: any) => b[1] - a[1])[0];
+          const topCat = topCatEntry[0];
+          const totalInspiration = processedStories.reduce((acc, s) => acc + s.views, 0);
+          setCommunityInsights({
+            mostViewed: sortedByViews[0].title,
+            topCategory: `${topCat} (${data.filter(s => s.category === topCat).length} stories)`,
+            motivationMeter: totalInspiration,
+          });
+        }
+      }
+    };
+    fetchStories();
+  }, []);
+
+  // Fetch saved and read
+  useEffect(() => {
+    const fetchSavedAndRead = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: savedData } = await supabase.from('user_stories_saves').select('story_id').eq('user_id', user.id);
+        setSavedStories(new Set(savedData?.map(d => d.story_id) || []));
+
+        const { data: readData } = await supabase.from('user_stories_reads').select('story_id, read_at').eq('user_id', user.id);
+        setReadStories(readData || []);
+      }
+    };
+    fetchSavedAndRead();
+  }, []);
+
+  useEffect(() => {
+    if (stories.length > 0 && readStories.length > 0 && categories.length > 0) {
+      const readCategories = new Set(readStories.map(r => stories.find(s => s.id === r.story_id)?.category).filter(Boolean));
+      const streak = calculateReadingStreak(readStories);
+      setWeeklyStats(prev => ({
+        ...prev,
+        storiesRead: readStories.length,
+        categoriesExplored: readCategories.size,
+        readingStreak: streak,
+      }));
+    }
+  }, [stories, readStories, categories]);
+
+  const calculateReadingStreak = (reads: any[]) => {
+    if (reads.length === 0) return 0;
+    const uniqueDays = [...new Set(reads.map(r => new Date(r.read_at).toISOString().slice(0,10)))].sort((a,b) => new Date(b).getTime() - new Date(a).getTime());
+    let streak = 1;
+    let current = new Date(uniqueDays[0]);
+    for (let i = 1; i < uniqueDays.length; i++) {
+      const prev = new Date(uniqueDays[i]);
+      if (current.getTime() - prev.getTime() === 86400000) { // 1 day
+        streak++;
+        current = prev;
+      } else {
+        break;
+      }
+    }
+    // Check if streak includes today
+    const today = new Date().toISOString().slice(0,10);
+    if (uniqueDays[0] !== today) {
+      return 0;
+    }
+    return streak;
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentQuote((prev) => (prev + 1) % motivationalQuotes.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const toggleSaveStory = async (storyId: number) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    if (savedStories.has(storyId)) {
+      await supabase.from('user_stories_saves').delete().eq('user_id', user.id).eq('story_id', storyId);
+      setSavedStories(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(storyId);
+        return newSet;
+      });
+    } else {
+      await supabase.from('user_stories_saves').insert({ user_id: user.id, story_id: storyId });
+      setSavedStories(prev => new Set([...prev, storyId]));
+    }
+  };
+
+  const filteredAndSortedStories = useMemo(() => {
+    let filtered = stories.filter(s => s.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    if (activeFilter === 'Trending') {
+      filtered.sort((a, b) => b.views - a.views);
+    } else if (activeFilter === 'New') {
+      filtered.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    } else if (activeFilter === 'Popular') {
+      filtered.sort((a, b) => b.rating - a.rating);
+    } else if (activeFilter === 'Quick Reads') {
+      filtered.sort((a, b) => parseInt(a.readTime) - parseInt(b.readTime));
+    }
+    return filtered;
+  }, [stories, searchTerm, activeFilter]);
+
+  const featuredStories = filteredAndSortedStories.slice(0, 3);
+  const moreStories = filteredAndSortedStories.slice(3, 5);
+  const savedStoriesList = stories.filter(s => savedStories.has(s.id));
+
+  // Update badges earned
+  const updatedBadges = badges.map(b => {
+    if (b.name === "First 5 Stories") return { ...b, earned: weeklyStats.storiesRead >= 5 };
+    if (b.name === "7-Day Streak") return { ...b, earned: weeklyStats.readingStreak >= 7 };
+    if (b.name === "Category Explorer") return { ...b, earned: weeklyStats.categoriesExplored >= categories.length };
+    if (b.name === "Story Saver") return { ...b, earned: savedStories.size >= 10 };
+    return b;
+  });
+
+  const handleCategoryClick = (categoryId: string) => {
+    router.push(`/stories?category=${categoryId}`);
+  };
+
+  const handleSubmitStory = () => {
+    setShowComingSoon(true);
+  };
+
+  const handleShareApp = () => {
+    // Implement share logic or coming soon
+    setShowComingSoon(true);
+  };
+
+  const handleSubscribe = () => {
+    setShowComingSoon(true);
+  };
+
+  const handlePlayVideo = () => {
+    setShowComingSoon(true);
+  };
+
+  const handleViewAllSaved = () => {
+    // Perhaps navigate to a saved stories page, for now coming soon
+    setShowComingSoon(true);
+  };
+
+  const handleReadTodaysFeatured = () => {
+    if (featuredStories.length > 0) {
+      router.push(`/stories/${featuredStories[0].id}`);
+    }
+  };
+
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto px-4 py-8 md:px-6 md:py-12 space-y-12 pt-20">
+          
+          {/* Welcome Section */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-10 rounded-full -translate-y-24 translate-x-24 blur-xl"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full translate-y-24 -translate-x-24 blur-xl"></div>
+            <div className="relative z-10 text-center md:text-left">
+              <h1 className="text-4xl md:text-5xl font-bold mb-3 flex items-center justify-center md:justify-start">
+                Hi {userName}! <span className="ml-2 animate-wave">👋</span>
+              </h1>
+              <p className="text-xl md:text-2xl mb-6">Ready for today's hustle inspiration?</p>
+              <div className="bg-white bg-opacity-20 rounded-2xl p-4 mb-8 backdrop-blur-md max-w-2xl mx-auto md:mx-0">
+                <p className="text-lg italic transition-all duration-500">
+                  "{motivationalQuotes[currentQuote]}"
+                </p>
+              </div>
+              <button onClick={handleReadTodaysFeatured} className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-opacity-90 transition-all duration-300 hover:scale-105 shadow-md">
+                Read Today's Featured Story 🚀
+              </button>
+            </div>
+          </div>
+
+          {/* User Progress Snapshot */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Eye className="w-6 h-6 text-blue-600" />
+                </div>
+                <span className="text-2xl">📚</span>
+              </div>
+              <h3 className="text-3xl font-bold text-gray-800 mb-1">{weeklyStats.storiesRead}</h3>
+              <p className="text-gray-600 mb-3">Stories Read</p>
+              <div className="bg-blue-100 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${(weeklyStats.storiesRead / 50) * 100}%` }} // Assuming max 50 for animation
+                ></div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Target className="w-6 h-6 text-blue-600" />
+                </div>
+                <span className="text-2xl">🎯</span>
+              </div>
+              <h3 className="text-3xl font-bold text-gray-800 mb-1">{weeklyStats.categoriesExplored}/{categories.length}</h3>
+              <p className="text-gray-600 mb-3">Categories Explored</p>
+              <div className="bg-blue-100 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${(weeklyStats.categoriesExplored / categories.length) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Flame className="w-6 h-6 text-blue-600" />
+                </div>
+                <span className="text-2xl">🔥</span>
+              </div>
+              <h3 className="text-3xl font-bold text-gray-800 mb-1">{weeklyStats.readingStreak}</h3>
+              <p className="text-gray-600 mb-3">Day Reading Streak</p>
+              <div className="bg-blue-100 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${Math.min(weeklyStats.readingStreak * 10, 100)}%` }} // 10% per day, max 10 days
+                ></div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Bookmark className="w-6 h-6 text-blue-600" />
+                </div>
+                <span className="text-2xl">💾</span>
+              </div>
+              <h3 className="text-3xl font-bold text-gray-800 mb-1">{savedStories.size}</h3>
+              <p className="text-gray-600 mb-3">Saved Stories</p>
+              <button onClick={handleViewAllSaved} className="mt-2 text-blue-600 text-sm font-medium hover:underline transition-colors">View All →</button>
+            </div>
+          </div>
+
+          {/* Featured Stories */}
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-800">🌟 Featured Stories</h2>
+              <div className="flex space-x-2">
+                <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">Trending</span>
+                <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">Editor's Pick</span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredStories.map((story) => (
+                <div key={story.id} className="group bg-white rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-gray-100 hover:border-blue-200">
+                  {story.trending && (
+                    <div className="flex items-center mb-3">
+                      <TrendingUp className="w-4 h-4 text-red-500 mr-1 animate-pulse" />
+                      <span className="text-red-500 text-sm font-medium">Trending</span>
+                    </div>
+                  )}
+                  <div className="text-5xl mb-4 transition-transform duration-300 group-hover:scale-110">{story.image}</div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
+                    {story.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">{story.snippet}</p>
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">
+                      {story.category}
+                    </span>
+                    <div className="flex items-center space-x-3">
+                      <span className="flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {story.readTime}
+                      </span>
+                      <span className="flex items-center">
+                        <Eye className="w-3 h-3 mr-1" />
+                        {story.viewsStr}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <Link href={`/stories/${story.id}`} className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors">
+                      Read Story
+                    </Link>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSaveStory(story.id);
+                      }}
+                      className={`p-2 rounded-full transition-all duration-300 ${
+                        savedStories.has(story.id) 
+                          ? 'bg-yellow-100 text-yellow-600 rotate-12' 
+                          : 'bg-gray-100 text-gray-400 hover:bg-yellow-100 hover:text-yellow-600 hover:rotate-12'
+                      }`}
+                    >
+                      <Bookmark className="w-4 h-4" fill={savedStories.has(story.id) ? 'currentColor' : 'none'} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Categories Shortcut */}
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">🎯 Explore Categories</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {categories.map((category: any, index) => (
+                <div key={index} onClick={() => handleCategoryClick(category.id)} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer hover:border-blue-300">
+                  <div className="text-4xl mb-4 transition-transform duration-300 group-hover:scale-110">{category.icon}</div>
+                  <h3 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors mb-1">
+                    {category.name}
+                  </h3>
+                  <p className="text-gray-500 text-sm mb-3">{category.count} stories</p>
+                  <div className={`mt-3 h-1 ${category.color || 'bg-blue-500'} rounded-full opacity-60 group-hover:opacity-100 transition-opacity`}></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Community Insights & Saved Stories */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* Community Insights */}
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white shadow-xl">
+              <h2 className="text-3xl font-bold mb-6 flex items-center">
+                <Users className="w-7 h-7 mr-3" />
+                Community Insights
+              </h2>
+              <div className="space-y-4">
+                <div className="bg-white bg-opacity-20 rounded-2xl p-5 backdrop-blur-md hover:bg-opacity-30 transition-all">
+                  <h3 className="font-semibold mb-1 text-lg">Most Viewed This Week</h3>
+                  <p className="text-base opacity-90">{communityInsights.mostViewed || 'Loading...'}</p>
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-2xl p-5 backdrop-blur-md hover:bg-opacity-30 transition-all">
+                  <h3 className="font-semibold mb-1 text-lg">Top Category Right Now</h3>
+                  <p className="text-base opacity-90">🔥 {communityInsights.topCategory || 'Loading...'}</p>
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-2xl p-5 backdrop-blur-md hover:bg-opacity-30 transition-all">
+                  <h3 className="font-semibold mb-1 text-lg">Motivation Meter</h3>
+                  <p className="text-base opacity-90">🚀 {communityInsights.motivationMeter} people found inspiration today!</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Saved Stories */}
+            <div className="bg-white rounded-3xl p-8 shadow-xl">
+              <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <Bookmark className="w-7 h-7 mr-3 text-blue-600" />
+                Your Saved Stories
+              </h2>
+              <div className="space-y-4">
+                {savedStoriesList.map((story) => (
+                  <Link key={story.id} href={`/stories/${story.id}`} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer group">
+                    <div className="text-3xl transition-transform group-hover:scale-110">{story.image}</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">{story.title}</h3>
+                      <p className="text-sm text-gray-500">{story.category} • {story.readTime}</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                  </Link>
+                ))}
+                {savedStories.size === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <Bookmark className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg">No saved stories yet. Start saving your favorites!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Achievements & Badges */}
+          <div className="bg-gradient-to-r from-blue-400 to-indigo-500 rounded-3xl p-8 text-white shadow-xl">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 flex items-center">
+              <Trophy className="w-8 h-8 mr-3" />
+              Your Achievements
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {updatedBadges.map((badge, index) => (
+                <div 
+                  key={index} 
+                  className={`bg-white bg-opacity-20 backdrop-blur-md rounded-2xl p-4 text-center transition-all duration-300 hover:scale-105 ${
+                    badge.earned ? 'ring-2 ring-white ring-opacity-50' : 'opacity-70'
+                  }`}
+                >
+                  <div className="text-4xl mb-2">{badge.icon}</div>
+                  <h3 className="font-semibold text-base mb-1">{badge.name}</h3>
+                  <p className="text-xs opacity-80 mb-2">{badge.description}</p>
+                  {badge.earned && (
+                    <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">Earned!</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Search & Quick Actions */}
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">Find Your Next Inspiration</h2>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input 
+                    type="text" 
+                    placeholder="Search for hustle stories, keywords, or categories..."
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-blue-300 focus:outline-none transition-all focus:shadow-md"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3 justify-center lg:justify-end">
+                <button onClick={() => setActiveFilter('Trending')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${activeFilter === 'Trending' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
+                  <Flame className="w-4 h-4" />
+                  <span>Trending</span>
+                </button>
+                <button onClick={() => setActiveFilter('New')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${activeFilter === 'New' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
+                  <Zap className="w-4 h-4" />
+                  <span>New</span>
+                </button>
+                <button onClick={() => setActiveFilter('Popular')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${activeFilter === 'Popular' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
+                  <Star className="w-4 h-4" />
+                  <span>Popular</span>
+                </button>
+                <button onClick={() => setActiveFilter('Quick Reads')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${activeFilter === 'Quick Reads' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
+                  <Clock className="w-4 h-4" />
+                  <span>Quick Reads</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to Action Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-6 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+              <PlusCircle className="w-12 h-12 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Share Your Story</h3>
+              <p className="text-sm opacity-90 mb-4">Inspire others with your hustle journey</p>
+              <button onClick={handleSubmitStory} className="bg-white text-blue-600 px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-90 transition-colors">
+                Submit Story
+              </button>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-6 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+              <Share2 className="w-12 h-12 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Share with Friends</h3>
+              <p className="text-sm opacity-90 mb-4">Spread the hustle inspiration</p>
+              <button onClick={handleShareApp} className="bg-white text-blue-600 px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-90 transition-colors">
+                Share App
+              </button>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-6 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+              <Heart className="w-12 h-12 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Daily Hustle Mail</h3>
+              <p className="text-sm opacity-90 mb-4">Get daily motivation in your inbox</p>
+              <button onClick={handleSubscribe} className="bg-white text-blue-600 px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-90 transition-colors">
+                Subscribe
+              </button>
+            </div>
+          </div>
+
+          {/* Inspiration Corner */}
+          <div className="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-y-16 translate-x-16 blur-2xl"></div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 flex items-center">
+              <Zap className="w-8 h-8 mr-3" />
+              Inspiration Corner
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 hover:bg-opacity-20 transition-all">
+                <h3 className="text-xl font-bold mb-3">💡 Hustle Fact of the Day</h3>
+                <p className="text-lg italic">
+                  {hustleFacts[Math.floor(Math.random() * hustleFacts.length)]}
+                </p>
+              </div>
+              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 hover:bg-opacity-20 transition-all">
+                <h3 className="text-xl font-bold mb-3">🎬 Quick Motivation</h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm mb-2">30-Second Success Story</p>
+                    <p className="text-lg font-semibold">"The Uber Driver's $1M App"</p>
+                  </div>
+                  <button onClick={handlePlayVideo} className="bg-white bg-opacity-20 p-4 rounded-full hover:bg-opacity-30 transition-all hover:scale-110">
+                    <Play className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* More Stories Grid */}
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">More Stories You'll Love</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {moreStories.map((story) => (
+                <Link key={story.id} href={`/stories/${story.id}`} className="group flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl hover:bg-blue-50 transition-all duration-300 cursor-pointer">
+                  <div className="text-4xl transition-transform group-hover:scale-110">{story.image}</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-600 transition-colors">
+                      {story.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{story.snippet}</p>
+                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                        {story.category}
+                      </span>
+                      <span>{story.readTime}</span>
+                      <span>{story.viewsStr} views</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      toggleSaveStory(story.id);
+                    }}
+                    className={`p-2 rounded-full transition-all duration-300 ${
+                      savedStories.has(story.id) 
+                        ? 'bg-yellow-100 text-yellow-600' 
+                        : 'bg-gray-200 text-gray-400 hover:bg-yellow-100 hover:text-yellow-600 hover:rotate-12'
+                    }`}
+                  >
+                    <Bookmark className="w-4 h-4" fill={savedStories.has(story.id) ? 'currentColor' : 'none'} />
+                  </button>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer with Stats */}
+          <div className="bg-blue-800 rounded-3xl p-8 text-white shadow-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+              <div>
+                <div className="text-4xl font-bold text-blue-300 mb-2">{stories.length}</div>
+                <div className="text-base text-blue-100">Total Stories</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-blue-300 mb-2">15,623</div>
+                <div className="text-base text-blue-100">Active Readers</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-blue-300 mb-2">$12.3M</div>
+                <div className="text-base text-blue-100">Total Earnings Shared</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-blue-300 mb-2">98%</div>
+                <div className="text-base text-blue-100">Success Rate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {showComingSoon && (
+          <div className="fixed bottom-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg animate-fade-in">
+            Coming Soon!
+          </div>
+        )}
+      </div>
+      <Footer />
+    </>
+  );
+};
+
+export default SideHustleSnapsDashboard;

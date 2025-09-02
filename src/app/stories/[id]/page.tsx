@@ -9,6 +9,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { createBrowserClient } from '@supabase/ssr';
 // Define Story type
 interface Story {
   id: number;
@@ -26,6 +27,21 @@ export default function StoryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
+
   useEffect(() => {
     if (isNaN(storyId)) {
       setError("Invalid story ID");
@@ -41,6 +57,14 @@ export default function StoryDetailPage() {
         }
         const data: Story = await response.json();
         setStory(data);
+
+        // Increment views
+        await supabase.rpc('increment_views', { story_id: storyId });
+
+        // Mark as read if user
+        if (user) {
+          await supabase.from('user_stories_reads').upsert({ user_id: user.id, story_id: storyId }, { onConflict: 'user_id, story_id' });
+        }
       } catch (err) {
         setError("Story not found or error fetching data");
       } finally {
@@ -48,7 +72,7 @@ export default function StoryDetailPage() {
       }
     };
     fetchStory();
-  }, [storyId]);
+  }, [storyId, user]);
   if (loading) {
     return (
       <>
