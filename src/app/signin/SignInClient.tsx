@@ -36,10 +36,10 @@ export default function SignInClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
 
-  const supabase = createBrowserClient(
+  const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  ), []);
 
   useEffect(() => {
     async function fetchSession() {
@@ -47,7 +47,7 @@ export default function SignInClient() {
       setSession(data.session);
     }
     fetchSession();
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     if (session) {
@@ -69,7 +69,7 @@ export default function SignInClient() {
     } finally {
       setIsLoading(false);
     }
-  }, [callbackUrl]);
+  }, [callbackUrl, supabase]);
 
   if (session) {
     return null; // Or a loading spinner if preferred

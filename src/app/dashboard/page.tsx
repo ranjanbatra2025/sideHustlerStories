@@ -8,22 +8,53 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
+// Define types
+interface Story {
+  id: number;
+  title: string;
+  name: string;
+  hustle: string;
+  rating: number;
+  image: string;
+  story: string;
+  category: string;
+  views: number;
+  updated_at: string;
+  readTime: string;
+  viewsStr: string;
+  trending: boolean;
+  snippet: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  count: number;
+  icon: string;
+  color?: string;
+}
+
+interface ReadStory {
+  story_id: number;
+  read_at: string;
+}
+
 const SideHustleSnapsDashboard = () => {
   const [userName, setUserName] = useState('User');
-  const [categories, setCategories] = useState<any[]>([]);
-  const [stories, setStories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
   const [currentQuote, setCurrentQuote] = useState(0);
   const [savedStories, setSavedStories] = useState<Set<number>>(new Set());
-  const [readStories, setReadStories] = useState<any[]>([]); // Change to array for read_at
+  const [readStories, setReadStories] = useState<ReadStory[]>([]); // Changed to array for read_at
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('Popular');
   const [showComingSoon, setShowComingSoon] = useState(false);
   const router = useRouter();
 
-  const supabase = createBrowserClient(
+  const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  ), []);
 
   const motivationalQuotes = [
     "Every expert was once a beginner. Every pro was once an amateur.",
@@ -87,7 +118,7 @@ const SideHustleSnapsDashboard = () => {
       }
     };
     fetchUserProfile();
-  }, []);
+  }, [supabase]);
 
   // Fetch categories
   useEffect(() => {
@@ -112,7 +143,7 @@ const SideHustleSnapsDashboard = () => {
     const fetchStories = async () => {
       const { data, error } = await supabase.from('stories').select('*').order('rating', { ascending: false });
       if (data) {
-        const processedStories = data.map(s => ({
+        const processedStories: Story[] = data.map(s => ({
           ...s,
           category: s.category,
           readTime: `${Math.ceil(s.story.split(' ').length / 200)} min`,
@@ -128,11 +159,11 @@ const SideHustleSnapsDashboard = () => {
         // Compute community insights
         if (data.length > 0) {
           const sortedByViews = [...processedStories].sort((a, b) => b.views - a.views);
-          const categoryViews = processedStories.reduce((acc: any, s) => {
+          const categoryViews = processedStories.reduce((acc: Record<string, number>, s) => {
             acc[s.category] = (acc[s.category] || 0) + s.views;
             return acc;
           }, {});
-          const topCatEntry = Object.entries(categoryViews).sort((a: any, b: any) => b[1] - a[1])[0];
+          const topCatEntry = Object.entries(categoryViews).sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0];
           const topCat = topCatEntry[0];
           const totalInspiration = processedStories.reduce((acc, s) => acc + s.views, 0);
           setCommunityInsights({
@@ -144,7 +175,7 @@ const SideHustleSnapsDashboard = () => {
       }
     };
     fetchStories();
-  }, []);
+  }, [supabase, categoryEmojis]);
 
   // Fetch saved and read
   useEffect(() => {
@@ -159,7 +190,7 @@ const SideHustleSnapsDashboard = () => {
       }
     };
     fetchSavedAndRead();
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     if (stories.length > 0 && readStories.length > 0 && categories.length > 0) {
@@ -174,7 +205,7 @@ const SideHustleSnapsDashboard = () => {
     }
   }, [stories, readStories, categories]);
 
-  const calculateReadingStreak = (reads: any[]) => {
+  const calculateReadingStreak = (reads: ReadStory[]) => {
     if (reads.length === 0) return 0;
     const uniqueDays = [...new Set(reads.map(r => new Date(r.read_at).toISOString().slice(0,10)))].sort((a,b) => new Date(b).getTime() - new Date(a).getTime());
     let streak = 1;
@@ -201,7 +232,7 @@ const SideHustleSnapsDashboard = () => {
       setCurrentQuote((prev) => (prev + 1) % motivationalQuotes.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [motivationalQuotes.length]);
 
   const toggleSaveStory = async (storyId: number) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -220,7 +251,7 @@ const SideHustleSnapsDashboard = () => {
   };
 
   const filteredAndSortedStories = useMemo(() => {
-    let filtered = stories.filter(s => s.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filtered = stories.filter(s => s.title.toLowerCase().includes(searchTerm.toLowerCase()));
     if (activeFilter === 'Trending') {
       filtered.sort((a, b) => b.views - a.views);
     } else if (activeFilter === 'New') {
@@ -436,7 +467,7 @@ const SideHustleSnapsDashboard = () => {
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">🎯 Explore Categories</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {categories.map((category: any, index) => (
+              {categories.map((category: Category, index) => (
                 <div key={index} onClick={() => handleCategoryClick(category.id)} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer hover:border-blue-300">
                   <div className="text-4xl mb-4 transition-transform duration-300 group-hover:scale-110">{category.icon}</div>
                   <h3 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors mb-1">
