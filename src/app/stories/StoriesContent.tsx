@@ -1,6 +1,6 @@
 // app/stories/StoriesContent.tsx (client component)
 "use client";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useInView } from "framer-motion";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from '@supabase/ssr';
-
+import { User } from '@supabase/supabase-js';
 // Define Story type
 interface Story {
   id: number;
@@ -25,7 +25,6 @@ interface Story {
   category: string;
   views?: number;
 }
-
 // Categories mapping (duplicated from categories page for name lookup; consider sharing in a util file)
 const categoriesMap: { [key: string]: string } = {
   "digital-online": "Digital & Online Hustles",
@@ -37,7 +36,6 @@ const categoriesMap: { [key: string]: string } = {
   "lifestyle-service": "Lifestyle & Service Hustles",
   "student-parttime": "Student & Part-time Friendly Hustles",
 };
-
 const categoryEmojis: { [key: string]: string } = {
   'e-commerce': '🛒',
   'digital-products': '📱',
@@ -47,7 +45,6 @@ const categoryEmojis: { [key: string]: string } = {
   'lifestyle-service': '🏡',
   'content-creation': '📹',
 };
-
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -56,12 +53,10 @@ const containerVariants = {
     transition: { staggerChildren: 0.2 },
   },
 };
-
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
-
 const cardVariants = {
   hidden: { opacity: 0, scale: 0.9, rotate: -3 },
   visible: {
@@ -77,7 +72,6 @@ const cardVariants = {
     transition: { duration: 0.3 },
   },
 };
-
 export default function StoriesContent() {
   const searchParams = useSearchParams();
   const categoryId = searchParams.get('category');
@@ -91,7 +85,7 @@ export default function StoriesContent() {
   const [particles, setParticles] = useState<
     Array<{ left: number; delay: number; duration: number }>
   >([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState({
     storiesRead: 0,
     categoriesExplored: 0,
@@ -101,27 +95,23 @@ export default function StoriesContent() {
     mostViewed: '',
     topCategory: '',
   });
-
-  const supabase = createBrowserClient(
+  const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
+  ), []);
   const headerRef = useRef<HTMLElement | null>(null);
   const gridRef = useRef<HTMLElement | null>(null);
   const ctaRef = useRef<HTMLElement | null>(null);
   const isHeaderInView = useInView(headerRef, { once: true, amount: 0.2 });
   const isGridInView = useInView(gridRef, { once: true, amount: 0.1 });
   const isCtaInView = useInView(ctaRef, { once: true, amount: 0.2 });
-
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
     };
     fetchUser();
-  }, []);
-
+  }, [supabase]);
   useEffect(() => {
     const fetchStories = async () => {
       try {
@@ -132,15 +122,14 @@ export default function StoriesContent() {
         }
         const data: Story[] = await response.json();
         setStories(data);
-
         // Compute community insights
         if (data.length > 0) {
           const sortedByViews = [...data].sort((a, b) => (b.views || 0) - (a.views || 0));
-          const categoryCounts = data.reduce((acc: any, s) => {
+          const categoryCounts = data.reduce((acc: Record<string, number>, s) => {
             acc[s.category] = (acc[s.category] || 0) + 1;
             return acc;
           }, {});
-          const topCat = Object.entries(categoryCounts).sort((a: any, b: any) => b[1] - a[1])[0][0];
+          const topCat = Object.entries(categoryCounts).sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0][0];
           setCommunityInsights({
             mostViewed: sortedByViews[0].title,
             topCategory: topCat,
@@ -154,20 +143,17 @@ export default function StoriesContent() {
     };
     fetchStories();
   }, [categoryId]);
-
   useEffect(() => {
     if (user) {
       const fetchSavedAndRead = async () => {
         const { data: savedData } = await supabase.from('user_stories_saves').select('story_id').eq('user_id', user.id);
         setSavedStories(new Set(savedData?.map(d => d.story_id) || []));
-
         const { data: readData } = await supabase.from('user_stories_reads').select('story_id').eq('user_id', user.id);
         setReadStories(new Set(readData?.map(d => d.story_id) || []));
       };
       fetchSavedAndRead();
     }
-  }, [user]);
-
+  }, [user, supabase]);
   useEffect(() => {
     if (stories.length > 0 && readStories.size > 0) {
       const readCategories = new Set(Array.from(readStories).map(id => stories.find(s => s.id === id)?.category).filter(Boolean));
@@ -178,7 +164,6 @@ export default function StoriesContent() {
       });
     }
   }, [stories, readStories, savedStories]);
-
   // Generate particles only on client-side after mount
   useEffect(() => {
     const newParticles = Array.from({ length: 20 }).map(() => ({
@@ -188,7 +173,6 @@ export default function StoriesContent() {
     }));
     setParticles(newParticles);
   }, []);
-
   const toggleSaveStory = async (storyId: number) => {
     if (!user) {
       // Prompt login or handle
@@ -206,10 +190,8 @@ export default function StoriesContent() {
       setSavedStories(prev => new Set([...prev, storyId]));
     }
   };
-
   const featuredStories = [...stories].sort((a, b) => b.rating - a.rating).slice(0, 3);
   const savedStoriesList = stories.filter(s => savedStories.has(s.id));
-
   return (
     <>
       <Navbar />
@@ -268,7 +250,6 @@ export default function StoriesContent() {
           transition={{ duration: 6, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" as const, delay: 1 }}
         />
       </section>
-
       {/* User Progress Snapshot (if logged in) */}
       {user && (
         <section className="py-8 bg-background">
@@ -303,7 +284,6 @@ export default function StoriesContent() {
           </div>
         </section>
       )}
-
       {/* Featured Stories */}
       <section className="py-8 bg-muted/40">
         <div className="container mx-auto px-4">
@@ -346,7 +326,6 @@ export default function StoriesContent() {
           </div>
         </div>
       </section>
-
       {/* Stories Grid */}
       <main
         className="py-16 bg-background"
@@ -432,7 +411,6 @@ export default function StoriesContent() {
           )}
         </div>
       </main>
-
       {/* Saved Stories (if logged in) */}
       {user && savedStoriesList.length > 0 && (
         <section className="py-8 bg-background">
@@ -453,7 +431,6 @@ export default function StoriesContent() {
           </div>
         </section>
       )}
-
       {/* Community Insights */}
       <section className="py-8 bg-muted/40">
         <div className="container mx-auto px-4">
@@ -470,7 +447,6 @@ export default function StoriesContent() {
           </div>
         </div>
       </section>
-
       <Separator />
       {/* CTA Section */}
       <section

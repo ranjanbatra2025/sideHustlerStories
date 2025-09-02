@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { createBrowserClient } from '@supabase/ssr';
+import { User } from '@supabase/supabase-js';
 // Define Story type
 interface Story {
   id: number;
@@ -27,12 +28,12 @@ export default function StoryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showComingSoon, setShowComingSoon] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
-  const supabase = createBrowserClient(
+  const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  ), []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -40,7 +41,7 @@ export default function StoryDetailPage() {
       setUser(user);
     };
     fetchUser();
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     if (isNaN(storyId)) {
@@ -72,7 +73,7 @@ export default function StoryDetailPage() {
       }
     };
     fetchStory();
-  }, [storyId, user]);
+  }, [storyId, user, supabase]);
   if (loading) {
     return (
       <>
