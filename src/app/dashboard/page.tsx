@@ -44,6 +44,7 @@ const SideHustleSnapsDashboard = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [currentQuote, setCurrentQuote] = useState(0);
+  const [currentFact, setCurrentFact] = useState(0);
   const [savedStories, setSavedStories] = useState<Set<number>>(new Set());
   const [readStories, setReadStories] = useState<ReadStory[]>([]); // Changed to array for read_at
   const [searchTerm, setSearchTerm] = useState('');
@@ -228,11 +229,18 @@ const SideHustleSnapsDashboard = () => {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const quoteInterval = setInterval(() => {
       setCurrentQuote((prev) => (prev + 1) % motivationalQuotes.length);
     }, 5000);
-    return () => clearInterval(interval);
+    return () => clearInterval(quoteInterval);
   }, [motivationalQuotes.length]);
+
+  useEffect(() => {
+    const factInterval = setInterval(() => {
+      setCurrentFact((prev) => (prev + 1) % hustleFacts.length);
+    }, 15000); // Changed to 15 seconds for slower change
+    return () => clearInterval(factInterval);
+  }, [hustleFacts.length]);
 
   const toggleSaveStory = async (storyId: number) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -285,9 +293,21 @@ const SideHustleSnapsDashboard = () => {
     setShowComingSoon(true);
   };
 
-  const handleShareApp = () => {
-    // Implement share logic or coming soon
-    setShowComingSoon(true);
+  const handleShareApp = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Side Hustle Snaps',
+          text: 'Check out this amazing app for side hustle inspiration!',
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+        setShowComingSoon(true); // Fallback
+      }
+    } else {
+      setShowComingSoon(true); // Fallback if share not supported
+    }
   };
 
   const handleSubscribe = () => {
@@ -532,25 +552,27 @@ const SideHustleSnapsDashboard = () => {
             </div>
           </div>
 
-          {/* Achievements & Badges */}
-          <div className="bg-gradient-to-r from-blue-400 to-indigo-500 rounded-3xl p-8 text-white shadow-xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 flex items-center">
-              <Trophy className="w-8 h-8 mr-3" />
+          {/* Achievements & Badges - Made more visible and stunning */}
+          <div className="bg-gradient-to-r from-blue-400 to-indigo-500 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-white opacity-10 rounded-full -translate-x-32 -translate-y-32 blur-3xl"></div>
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full translate-x-32 translate-y-32 blur-3xl"></div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-8 flex items-center relative z-10">
+              <Trophy className="w-10 h-10 mr-4 text-yellow-300" />
               Your Achievements
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 relative z-10">
               {updatedBadges.map((badge, index) => (
                 <div 
                   key={index} 
-                  className={`bg-white bg-opacity-20 backdrop-blur-md rounded-2xl p-4 text-center transition-all duration-300 hover:scale-105 ${
-                    badge.earned ? 'ring-2 ring-white ring-opacity-50' : 'opacity-70'
+                  className={`bg-white bg-opacity-30 backdrop-blur-lg rounded-2xl p-6 text-center transition-all duration-500 hover:scale-110 hover:rotate-3 shadow-lg hover:shadow-2xl ${
+                    badge.earned ? 'ring-4 ring-yellow-300 ring-opacity-70 animate-pulse' : 'opacity-80'
                   }`}
                 >
-                  <div className="text-4xl mb-2">{badge.icon}</div>
-                  <h3 className="font-semibold text-base mb-1">{badge.name}</h3>
-                  <p className="text-xs opacity-80 mb-2">{badge.description}</p>
+                  <div className="text-6xl mb-3 animate-bounce">{badge.icon}</div>
+                  <h3 className="font-bold text-lg mb-2">{badge.name}</h3>
+                  <p className="text-sm opacity-90 mb-3">{badge.description}</p>
                   {badge.earned && (
-                    <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">Earned!</span>
+                    <span className="bg-yellow-400 text-blue-900 px-4 py-1 rounded-full text-sm font-bold shadow-md">Earned! 🎉</span>
                   )}
                 </div>
               ))}
@@ -594,31 +616,31 @@ const SideHustleSnapsDashboard = () => {
             </div>
           </div>
 
-          {/* Call to Action Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-6 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
-              <PlusCircle className="w-12 h-12 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Share Your Story</h3>
-              <p className="text-sm opacity-90 mb-4">Inspire others with your hustle journey</p>
-              <button onClick={handleSubmitStory} className="bg-white text-blue-600 px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-90 transition-colors">
+          {/* Call to Action Section - Made more visible and better */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg">
+              <PlusCircle className="w-16 h-16 mb-6 text-yellow-300" />
+              <h3 className="text-2xl font-bold mb-3">Share Your Story</h3>
+              <p className="text-base opacity-90 mb-6">Inspire others with your hustle journey</p>
+              <button onClick={handleSubmitStory} className="bg-white text-blue-600 px-6 py-3 rounded-full text-base font-bold hover:bg-opacity-90 transition-colors shadow-md">
                 Submit Story
               </button>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-6 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
-              <Share2 className="w-12 h-12 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Share with Friends</h3>
-              <p className="text-sm opacity-90 mb-4">Spread the hustle inspiration</p>
-              <button onClick={handleShareApp} className="bg-white text-blue-600 px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-90 transition-colors">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg">
+              <Share2 className="w-16 h-16 mb-6 text-yellow-300" />
+              <h3 className="text-2xl font-bold mb-3">Share with Friends</h3>
+              <p className="text-base opacity-90 mb-6">Spread the hustle inspiration</p>
+              <button onClick={handleShareApp} className="bg-white text-blue-600 px-6 py-3 rounded-full text-base font-bold hover:bg-opacity-90 transition-colors shadow-md">
                 Share App
               </button>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-400 to-indigo-500 rounded-2xl p-6 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
-              <Heart className="w-12 h-12 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Daily Hustle Mail</h3>
-              <p className="text-sm opacity-90 mb-4">Get daily motivation in your inbox</p>
-              <button onClick={handleSubscribe} className="bg-white text-blue-600 px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-90 transition-colors">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg">
+              <Heart className="w-16 h-16 mb-6 text-yellow-300" />
+              <h3 className="text-2xl font-bold mb-3">Daily Hustle Mail</h3>
+              <p className="text-base opacity-90 mb-6">Get daily motivation in your inbox</p>
+              <button onClick={handleSubscribe} className="bg-white text-blue-600 px-6 py-3 rounded-full text-base font-bold hover:bg-opacity-90 transition-colors shadow-md">
                 Subscribe
               </button>
             </div>
@@ -634,8 +656,8 @@ const SideHustleSnapsDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 hover:bg-opacity-20 transition-all">
                 <h3 className="text-xl font-bold mb-3">💡 Hustle Fact of the Day</h3>
-                <p className="text-lg italic">
-                  {hustleFacts[Math.floor(Math.random() * hustleFacts.length)]}
+                <p className="text-lg italic transition-all duration-500">
+                  {hustleFacts[currentFact]}
                 </p>
               </div>
               <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 hover:bg-opacity-20 transition-all">
