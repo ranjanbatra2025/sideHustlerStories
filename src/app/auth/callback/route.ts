@@ -8,8 +8,26 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data.user) {
+      const { user } = data;
+      // Upsert the profile with details from Google
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          full_name: user.user_metadata?.full_name || 'User',
+          // Add other necessary details if available
+          email: user.email,
+          avatar_url: user.user_metadata?.avatar_url,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' });
+
+      if (profileError) {
+        console.error('Profile upsert error:', profileError);
+        // Optionally handle error, but proceed to redirect
+      }
+
       return NextResponse.redirect(`${process.env.SITE_URL}${next}`);
     }
   }
