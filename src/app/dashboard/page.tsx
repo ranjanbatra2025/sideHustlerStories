@@ -50,6 +50,7 @@ const SideHustleSnapsDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('Popular');
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Added loading state
   const router = useRouter();
 
   const supabase = useMemo(() => createBrowserClient(
@@ -114,15 +115,17 @@ const SideHustleSnapsDashboard = () => {
           .eq('id', user.id)
           .single();
         setUserName(profile?.full_name || 'User');
+        setIsLoading(false); // Set loading to false if user exists
       } else {
-        window.location.href = '/signin';
+        router.push('/signin'); // Use router.push for redirect
       }
     };
     fetchUserProfile();
-  }, [supabase]);
+  }, [supabase, router]);
 
   // Fetch categories
   useEffect(() => {
+    if (isLoading) return; // Skip if still loading/auth checking
     const fetchCategories = async () => {
       try {
         const response = await fetch("/api/categories");
@@ -137,10 +140,11 @@ const SideHustleSnapsDashboard = () => {
       }
     };
     fetchCategories();
-  }, []);
+  }, [isLoading]);
 
   // Fetch stories
   useEffect(() => {
+    if (isLoading) return;
     const fetchStories = async () => {
       const { data, error } = await supabase.from('stories').select('*').order('rating', { ascending: false });
       if (data) {
@@ -176,10 +180,11 @@ const SideHustleSnapsDashboard = () => {
       }
     };
     fetchStories();
-  }, [supabase, categoryEmojis]);
+  }, [supabase, categoryEmojis, isLoading]);
 
   // Fetch saved and read
   useEffect(() => {
+    if (isLoading) return;
     const fetchSavedAndRead = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -191,7 +196,7 @@ const SideHustleSnapsDashboard = () => {
       }
     };
     fetchSavedAndRead();
-  }, [supabase]);
+  }, [supabase, isLoading]);
 
   useEffect(() => {
     if (stories.length > 0 && readStories.length > 0 && categories.length > 0) {
@@ -329,6 +334,14 @@ const SideHustleSnapsDashboard = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="text-blue-600 text-2xl font-bold">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Navbar />
@@ -336,36 +349,36 @@ const SideHustleSnapsDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 py-8 md:px-6 md:py-12 space-y-12 pt-20">
           
           {/* Welcome Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-6 sm:p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
             <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-10 rounded-full -translate-y-24 translate-x-24 blur-xl"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full translate-y-24 -translate-x-24 blur-xl"></div>
             <div className="relative z-10 text-center md:text-left">
-              <h1 className="text-4xl md:text-5xl font-bold mb-3 flex items-center justify-center md:justify-start">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 flex items-center justify-center md:justify-start">
                 Hi {userName}! <span className="ml-2 animate-wave">👋</span>
               </h1>
-              <p className="text-xl md:text-2xl mb-6">Ready for today's hustle inspiration?</p>
+              <p className="text-lg sm:text-xl md:text-2xl mb-6">Ready for today's hustle inspiration?</p>
               <div className="bg-white bg-opacity-20 rounded-2xl p-4 mb-8 backdrop-blur-md max-w-2xl mx-auto md:mx-0">
-                <p className="text-lg italic transition-all duration-500">
+                <p className="text-base sm:text-lg italic transition-all duration-500">
                   "{motivationalQuotes[currentQuote]}"
                 </p>
               </div>
-              <button onClick={handleReadTodaysFeatured} className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-opacity-90 transition-all duration-300 hover:scale-105 shadow-md">
+              <button onClick={handleReadTodaysFeatured} className="bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-full font-semibold hover:bg-opacity-90 transition-all duration-300 hover:scale-105 shadow-md">
                 Read Today's Featured Story 🚀
               </button>
             </div>
           </div>
 
           {/* User Progress Snapshot */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
               <div className="flex items-center justify-between mb-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Eye className="w-6 h-6 text-blue-600" />
+                <div className="bg-blue-100 p-2 sm:p-3 rounded-full">
+                  <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
-                <span className="text-2xl">📚</span>
+                <span className="text-xl sm:text-2xl">📚</span>
               </div>
-              <h3 className="text-3xl font-bold text-gray-800 mb-1">{weeklyStats.storiesRead}</h3>
-              <p className="text-gray-600 mb-3">Stories Read</p>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">{weeklyStats.storiesRead}</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-3">Stories Read</p>
               <div className="bg-blue-100 rounded-full h-2 overflow-hidden">
                 <div 
                   className="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-out"
@@ -374,15 +387,15 @@ const SideHustleSnapsDashboard = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
               <div className="flex items-center justify-between mb-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Target className="w-6 h-6 text-blue-600" />
+                <div className="bg-blue-100 p-2 sm:p-3 rounded-full">
+                  <Target className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
-                <span className="text-2xl">🎯</span>
+                <span className="text-xl sm:text-2xl">🎯</span>
               </div>
-              <h3 className="text-3xl font-bold text-gray-800 mb-1">{weeklyStats.categoriesExplored}/{categories.length}</h3>
-              <p className="text-gray-600 mb-3">Categories Explored</p>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">{weeklyStats.categoriesExplored}/{categories.length}</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-3">Categories Explored</p>
               <div className="bg-blue-100 rounded-full h-2 overflow-hidden">
                 <div 
                   className="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-out"
@@ -391,15 +404,15 @@ const SideHustleSnapsDashboard = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
               <div className="flex items-center justify-between mb-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Flame className="w-6 h-6 text-blue-600" />
+                <div className="bg-blue-100 p-2 sm:p-3 rounded-full">
+                  <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
-                <span className="text-2xl">🔥</span>
+                <span className="text-xl sm:text-2xl">🔥</span>
               </div>
-              <h3 className="text-3xl font-bold text-gray-800 mb-1">{weeklyStats.readingStreak}</h3>
-              <p className="text-gray-600 mb-3">Day Reading Streak</p>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">{weeklyStats.readingStreak}</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-3">Day Reading Streak</p>
               <div className="bg-blue-100 rounded-full h-2 overflow-hidden">
                 <div 
                   className="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-out"
@@ -408,48 +421,48 @@ const SideHustleSnapsDashboard = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
               <div className="flex items-center justify-between mb-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Bookmark className="w-6 h-6 text-blue-600" />
+                <div className="bg-blue-100 p-2 sm:p-3 rounded-full">
+                  <Bookmark className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
-                <span className="text-2xl">💾</span>
+                <span className="text-xl sm:text-2xl">💾</span>
               </div>
-              <h3 className="text-3xl font-bold text-gray-800 mb-1">{savedStories.size}</h3>
-              <p className="text-gray-600 mb-3">Saved Stories</p>
-              <button onClick={handleViewAllSaved} className="mt-2 text-blue-600 text-sm font-medium hover:underline transition-colors">View All →</button>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">{savedStories.size}</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-3">Saved Stories</p>
+              <button onClick={handleViewAllSaved} className="mt-2 text-blue-600 text-xs sm:text-sm font-medium hover:underline transition-colors">View All →</button>
             </div>
           </div>
 
           {/* Featured Stories */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-800">🌟 Featured Stories</h2>
+          <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">🌟 Featured Stories</h2>
               <div className="flex space-x-2">
-                <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">Trending</span>
-                <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">Editor's Pick</span>
+                <span className="bg-red-100 text-red-600 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium">Trending</span>
+                <span className="bg-blue-100 text-blue-600 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium">Editor's Pick</span>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {featuredStories.map((story) => (
-                <div key={story.id} className="group bg-white rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-gray-100 hover:border-blue-200">
+                <div key={story.id} className="group bg-white rounded-2xl p-4 sm:p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-gray-100 hover:border-blue-200">
                   {story.trending && (
-                    <div className="flex items-center mb-3">
-                      <TrendingUp className="w-4 h-4 text-red-500 mr-1 animate-pulse" />
-                      <span className="text-red-500 text-sm font-medium">Trending</span>
+                    <div className="flex items-center mb-2 sm:mb-3">
+                      <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-red-500 mr-1 animate-pulse" />
+                      <span className="text-red-500 text-xs sm:text-sm font-medium">Trending</span>
                     </div>
                   )}
-                  <div className="text-5xl mb-4 transition-transform duration-300 group-hover:scale-110">{story.image}</div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
+                  <div className="text-4xl sm:text-5xl mb-3 sm:mb-4 transition-transform duration-300 group-hover:scale-110">{story.image}</div>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
                     {story.title}
                   </h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">{story.snippet}</p>
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">
+                  <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3">{story.snippet}</p>
+                  <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
+                    <span className="bg-blue-100 text-blue-600 px-1 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs">
                       {story.category}
                     </span>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       <span className="flex items-center">
                         <Clock className="w-3 h-3 mr-1" />
                         {story.readTime}
@@ -461,7 +474,7 @@ const SideHustleSnapsDashboard = () => {
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <Link href={`/stories/${story.id}`} className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors">
+                    <Link href={`/stories/${story.id}`} className="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium hover:bg-blue-700 transition-colors">
                       Read Story
                     </Link>
                     <button 
@@ -469,13 +482,13 @@ const SideHustleSnapsDashboard = () => {
                         e.stopPropagation();
                         toggleSaveStory(story.id);
                       }}
-                      className={`p-2 rounded-full transition-all duration-300 ${
+                      className={`p-1 sm:p-2 rounded-full transition-all duration-300 ${
                         savedStories.has(story.id) 
                           ? 'bg-yellow-100 text-yellow-600 rotate-12' 
                           : 'bg-gray-100 text-gray-400 hover:bg-yellow-100 hover:text-yellow-600 hover:rotate-12'
                       }`}
                     >
-                      <Bookmark className="w-4 h-4" fill={savedStories.has(story.id) ? 'currentColor' : 'none'} />
+                      <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" fill={savedStories.has(story.id) ? 'currentColor' : 'none'} />
                     </button>
                   </div>
                 </div>
@@ -484,68 +497,68 @@ const SideHustleSnapsDashboard = () => {
           </div>
 
           {/* Categories Shortcut */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">🎯 Explore Categories</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4 sm:mb-6">🎯 Explore Categories</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {categories.map((category: Category, index) => (
-                <div key={index} onClick={() => handleCategoryClick(category.id)} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer hover:border-blue-300">
-                  <div className="text-4xl mb-4 transition-transform duration-300 group-hover:scale-110">{category.icon}</div>
-                  <h3 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors mb-1">
+                <div key={index} onClick={() => handleCategoryClick(category.id)} className="group bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer hover:border-blue-300">
+                  <div className="text-3xl sm:text-4xl mb-3 sm:mb-4 transition-transform duration-300 group-hover:scale-110">{category.icon}</div>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors mb-1">
                     {category.name}
                   </h3>
-                  <p className="text-gray-500 text-sm mb-3">{category.count} stories</p>
-                  <div className={`mt-3 h-1 ${category.color || 'bg-blue-500'} rounded-full opacity-60 group-hover:opacity-100 transition-opacity`}></div>
+                  <p className="text-gray-500 text-xs sm:text-sm mb-2 sm:mb-3">{category.count} stories</p>
+                  <div className={`mt-2 sm:mt-3 h-1 ${category.color || 'bg-blue-500'} rounded-full opacity-60 group-hover:opacity-100 transition-opacity`}></div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Community Insights & Saved Stories */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
             
             {/* Community Insights */}
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white shadow-xl">
-              <h2 className="text-3xl font-bold mb-6 flex items-center">
-                <Users className="w-7 h-7 mr-3" />
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 flex items-center">
+                <Users className="w-6 h-6 sm:w-7 sm:h-7 mr-3" />
                 Community Insights
               </h2>
-              <div className="space-y-4">
-                <div className="bg-white bg-opacity-20 rounded-2xl p-5 backdrop-blur-md hover:bg-opacity-30 transition-all">
-                  <h3 className="font-semibold mb-1 text-lg">Most Viewed This Week</h3>
-                  <p className="text-base opacity-90">{communityInsights.mostViewed || 'Loading...'}</p>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="bg-white bg-opacity-20 rounded-2xl p-4 sm:p-5 backdrop-blur-md hover:bg-opacity-30 transition-all">
+                  <h3 className="font-semibold mb-1 text-base sm:text-lg">Most Viewed This Week</h3>
+                  <p className="text-sm sm:text-base opacity-90">{communityInsights.mostViewed || 'Loading...'}</p>
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-2xl p-5 backdrop-blur-md hover:bg-opacity-30 transition-all">
-                  <h3 className="font-semibold mb-1 text-lg">Top Category Right Now</h3>
-                  <p className="text-base opacity-90">🔥 {communityInsights.topCategory || 'Loading...'}</p>
+                <div className="bg-white bg-opacity-20 rounded-2xl p-4 sm:p-5 backdrop-blur-md hover:bg-opacity-30 transition-all">
+                  <h3 className="font-semibold mb-1 text-base sm:text-lg">Top Category Right Now</h3>
+                  <p className="text-sm sm:text-base opacity-90">🔥 {communityInsights.topCategory || 'Loading...'}</p>
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-2xl p-5 backdrop-blur-md hover:bg-opacity-30 transition-all">
-                  <h3 className="font-semibold mb-1 text-lg">Motivation Meter</h3>
-                  <p className="text-base opacity-90">🚀 {communityInsights.motivationMeter} people found inspiration today!</p>
+                <div className="bg-white bg-opacity-20 rounded-2xl p-4 sm:p-5 backdrop-blur-md hover:bg-opacity-30 transition-all">
+                  <h3 className="font-semibold mb-1 text-base sm:text-lg">Motivation Meter</h3>
+                  <p className="text-sm sm:text-base opacity-90">🚀 {communityInsights.motivationMeter} people found inspiration today!</p>
                 </div>
               </div>
             </div>
 
             {/* Saved Stories */}
-            <div className="bg-white rounded-3xl p-8 shadow-xl">
-              <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
-                <Bookmark className="w-7 h-7 mr-3 text-blue-600" />
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center">
+                <Bookmark className="w-6 h-6 sm:w-7 sm:h-7 mr-3 text-blue-600" />
                 Your Saved Stories
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {savedStoriesList.map((story) => (
-                  <Link key={story.id} href={`/stories/${story.id}`} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer group">
-                    <div className="text-3xl transition-transform group-hover:scale-110">{story.image}</div>
+                  <Link key={story.id} href={`/stories/${story.id}`} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer group">
+                    <div className="text-2xl sm:text-3xl transition-transform group-hover:scale-110">{story.image}</div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">{story.title}</h3>
-                      <p className="text-sm text-gray-500">{story.category} • {story.readTime}</p>
+                      <h3 className="font-semibold text-base sm:text-lg text-gray-800 group-hover:text-blue-600 transition-colors">{story.title}</h3>
+                      <p className="text-xs sm:text-sm text-gray-500">{story.category} • {story.readTime}</p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
                   </Link>
                 ))}
                 {savedStories.size === 0 && (
-                  <div className="text-center py-12 text-gray-500">
-                    <Bookmark className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg">No saved stories yet. Start saving your favorites!</p>
+                  <div className="text-center py-8 sm:py-12 text-gray-500">
+                    <Bookmark className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-base sm:text-lg">No saved stories yet. Start saving your favorites!</p>
                   </div>
                 )}
               </div>
@@ -553,26 +566,26 @@ const SideHustleSnapsDashboard = () => {
           </div>
 
           {/* Achievements & Badges - Made more visible and stunning */}
-          <div className="bg-gradient-to-r from-blue-400 to-indigo-500 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-400 to-indigo-500 rounded-3xl p-6 sm:p-8 md:p-12 text-white shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-64 h-64 bg-white opacity-10 rounded-full -translate-x-32 -translate-y-32 blur-3xl"></div>
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full translate-x-32 translate-y-32 blur-3xl"></div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-8 flex items-center relative z-10">
-              <Trophy className="w-10 h-10 mr-4 text-yellow-300" />
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 sm:mb-8 flex items-center relative z-10">
+              <Trophy className="w-8 h-8 sm:w-10 sm:h-10 mr-3 sm:mr-4 text-yellow-300" />
               Your Achievements
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 relative z-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 relative z-10">
               {updatedBadges.map((badge, index) => (
                 <div 
                   key={index} 
-                  className={`bg-white bg-opacity-30 backdrop-blur-lg rounded-2xl p-6 text-center transition-all duration-500 hover:scale-110 hover:rotate-3 shadow-lg hover:shadow-2xl ${
+                  className={`bg-white bg-opacity-30 backdrop-blur-lg rounded-2xl p-4 sm:p-6 text-center transition-all duration-500 hover:scale-110 hover:rotate-3 shadow-lg hover:shadow-2xl ${
                     badge.earned ? 'ring-4 ring-yellow-300 ring-opacity-70 animate-pulse' : 'opacity-80'
                   }`}
                 >
-                  <div className="text-6xl mb-3 animate-bounce">{badge.icon}</div>
-                  <h3 className="font-bold text-lg mb-2">{badge.name}</h3>
-                  <p className="text-sm opacity-90 mb-3">{badge.description}</p>
+                  <div className="text-4xl sm:text-6xl mb-2 sm:mb-3 animate-bounce">{badge.icon}</div>
+                  <h3 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">{badge.name}</h3>
+                  <p className="text-xs sm:text-sm opacity-90 mb-2 sm:mb-3">{badge.description}</p>
                   {badge.earned && (
-                    <span className="bg-yellow-400 text-blue-900 px-4 py-1 rounded-full text-sm font-bold shadow-md">Earned! 🎉</span>
+                    <span className="bg-yellow-400 text-blue-900 px-3 py-1 sm:px-4 sm:py-1 rounded-full text-xs sm:text-sm font-bold shadow-md">Earned! 🎉</span>
                   )}
                 </div>
               ))}
@@ -580,95 +593,95 @@ const SideHustleSnapsDashboard = () => {
           </div>
 
           {/* Search & Quick Actions */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-gray-800 mb-4">Find Your Next Inspiration</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3 sm:mb-4">Find Your Next Inspiration</h2>
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
                   <input 
                     type="text" 
                     placeholder="Search for hustle stories, keywords, or categories..."
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-blue-300 focus:outline-none transition-all focus:shadow-md"
+                    className="w-full pl-8 sm:pl-12 pr-4 py-3 sm:py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-blue-300 focus:outline-none transition-all focus:shadow-md"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
               </div>
-              <div className="flex flex-wrap gap-3 justify-center lg:justify-end">
-                <button onClick={() => setActiveFilter('Trending')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${activeFilter === 'Trending' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
-                  <Flame className="w-4 h-4" />
-                  <span>Trending</span>
+              <div className="flex flex-wrap gap-2 sm:gap-3 justify-center lg:justify-end">
+                <button onClick={() => setActiveFilter('Trending')} className={`flex items-center space-x-1 sm:space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition-all duration-300 ${activeFilter === 'Trending' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
+                  <Flame className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="text-xs sm:text-base">Trending</span>
                 </button>
-                <button onClick={() => setActiveFilter('New')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${activeFilter === 'New' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
-                  <Zap className="w-4 h-4" />
-                  <span>New</span>
+                <button onClick={() => setActiveFilter('New')} className={`flex items-center space-x-1 sm:space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition-all duration-300 ${activeFilter === 'New' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
+                  <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="text-xs sm:text-base">New</span>
                 </button>
-                <button onClick={() => setActiveFilter('Popular')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${activeFilter === 'Popular' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
-                  <Star className="w-4 h-4" />
-                  <span>Popular</span>
+                <button onClick={() => setActiveFilter('Popular')} className={`flex items-center space-x-1 sm:space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition-all duration-300 ${activeFilter === 'Popular' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
+                  <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="text-xs sm:text-base">Popular</span>
                 </button>
-                <button onClick={() => setActiveFilter('Quick Reads')} className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${activeFilter === 'Quick Reads' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
-                  <Clock className="w-4 h-4" />
-                  <span>Quick Reads</span>
+                <button onClick={() => setActiveFilter('Quick Reads')} className={`flex items-center space-x-1 sm:space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition-all duration-300 ${activeFilter === 'Quick Reads' ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-100 text-blue-600 hover:bg-blue-200 hover:shadow'}`}>
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="text-xs sm:text-base">Quick Reads</span>
                 </button>
               </div>
             </div>
           </div>
 
           {/* Call to Action Section - Made more visible and better */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg">
-              <PlusCircle className="w-16 h-16 mb-6 text-yellow-300" />
-              <h3 className="text-2xl font-bold mb-3">Share Your Story</h3>
-              <p className="text-base opacity-90 mb-6">Inspire others with your hustle journey</p>
-              <button onClick={handleSubmitStory} className="bg-white text-blue-600 px-6 py-3 rounded-full text-base font-bold hover:bg-opacity-90 transition-colors shadow-md">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg">
+              <PlusCircle className="w-12 h-12 sm:w-16 sm:h-16 mb-4 sm:mb-6 text-yellow-300" />
+              <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">Share Your Story</h3>
+              <p className="text-sm sm:text-base opacity-90 mb-4 sm:mb-6">Inspire others with your hustle journey</p>
+              <button onClick={handleSubmitStory} className="bg-white text-blue-600 px-4 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-bold hover:bg-opacity-90 transition-colors shadow-md">
                 Submit Story
               </button>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg">
-              <Share2 className="w-16 h-16 mb-6 text-yellow-300" />
-              <h3 className="text-2xl font-bold mb-3">Share with Friends</h3>
-              <p className="text-base opacity-90 mb-6">Spread the hustle inspiration</p>
-              <button onClick={handleShareApp} className="bg-white text-blue-600 px-6 py-3 rounded-full text-base font-bold hover:bg-opacity-90 transition-colors shadow-md">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg">
+              <Share2 className="w-12 h-12 sm:w-16 sm:h-16 mb-4 sm:mb-6 text-yellow-300" />
+              <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">Share with Friends</h3>
+              <p className="text-sm sm:text-base opacity-90 mb-4 sm:mb-6">Spread the hustle inspiration</p>
+              <button onClick={handleShareApp} className="bg-white text-blue-600 px-4 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-bold hover:bg-opacity-90 transition-colors shadow-md">
                 Share App
               </button>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg">
-              <Heart className="w-16 h-16 mb-6 text-yellow-300" />
-              <h3 className="text-2xl font-bold mb-3">Daily Hustle Mail</h3>
-              <p className="text-base opacity-90 mb-6">Get daily motivation in your inbox</p>
-              <button onClick={handleSubscribe} className="bg-white text-blue-600 px-6 py-3 rounded-full text-base font-bold hover:bg-opacity-90 transition-colors shadow-md">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg">
+              <Heart className="w-12 h-12 sm:w-16 sm:h-16 mb-4 sm:mb-6 text-yellow-300" />
+              <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">Daily Hustle Mail</h3>
+              <p className="text-sm sm:text-base opacity-90 mb-4 sm:mb-6">Get daily motivation in your inbox</p>
+              <button onClick={handleSubscribe} className="bg-white text-blue-600 px-4 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-bold hover:bg-opacity-90 transition-colors shadow-md">
                 Subscribe
               </button>
             </div>
           </div>
 
           {/* Inspiration Corner */}
-          <div className="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-800 to-indigo-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-y-16 translate-x-16 blur-2xl"></div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 flex items-center">
-              <Zap className="w-8 h-8 mr-3" />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 flex items-center">
+              <Zap className="w-6 h-6 sm:w-8 sm:h-8 mr-3" />
               Inspiration Corner
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 hover:bg-opacity-20 transition-all">
-                <h3 className="text-xl font-bold mb-3">💡 Hustle Fact of the Day</h3>
-                <p className="text-lg italic transition-all duration-500">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-4 sm:p-6 hover:bg-opacity-20 transition-all">
+                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">💡 Hustle Fact of the Day</h3>
+                <p className="text-base sm:text-lg italic transition-all duration-500">
                   {hustleFacts[currentFact]}
                 </p>
               </div>
-              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 hover:bg-opacity-20 transition-all">
-                <h3 className="text-xl font-bold mb-3">🎬 Quick Motivation</h3>
+              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-4 sm:p-6 hover:bg-opacity-20 transition-all">
+                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">🎬 Quick Motivation</h3>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm mb-2">30-Second Success Story</p>
-                    <p className="text-lg font-semibold">"The Uber Driver's $1M App"</p>
+                    <p className="text-xs sm:text-sm mb-1 sm:mb-2">30-Second Success Story</p>
+                    <p className="text-base sm:text-lg font-semibold">"The Uber Driver's $1M App"</p>
                   </div>
-                  <button onClick={handlePlayVideo} className="bg-white bg-opacity-20 p-4 rounded-full hover:bg-opacity-30 transition-all hover:scale-110">
-                    <Play className="w-6 h-6" />
+                  <button onClick={handlePlayVideo} className="bg-white bg-opacity-20 p-3 sm:p-4 rounded-full hover:bg-opacity-30 transition-all hover:scale-110">
+                    <Play className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
                 </div>
               </div>
@@ -676,19 +689,19 @@ const SideHustleSnapsDashboard = () => {
           </div>
 
           {/* More Stories Grid */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">More Stories You'll Love</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4 sm:mb-6">More Stories You'll Love</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {moreStories.map((story) => (
-                <Link key={story.id} href={`/stories/${story.id}`} className="group flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl hover:bg-blue-50 transition-all duration-300 cursor-pointer">
-                  <div className="text-4xl transition-transform group-hover:scale-110">{story.image}</div>
+                <Link key={story.id} href={`/stories/${story.id}`} className="group flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 bg-gray-50 rounded-2xl hover:bg-blue-50 transition-all duration-300 cursor-pointer">
+                  <div className="text-3xl sm:text-4xl transition-transform group-hover:scale-110">{story.image}</div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-bold text-base sm:text-lg text-gray-800 group-hover:text-blue-600 transition-colors">
                       {story.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{story.snippet}</p>
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2 line-clamp-2">{story.snippet}</p>
+                    <div className="flex items-center space-x-3 sm:space-x-4 text-xs text-gray-500">
+                      <span className="bg-blue-100 text-blue-600 px-1 py-0.5 sm:px-2 sm:py-1 rounded-full">
                         {story.category}
                       </span>
                       <span>{story.readTime}</span>
@@ -701,13 +714,13 @@ const SideHustleSnapsDashboard = () => {
                       e.preventDefault();
                       toggleSaveStory(story.id);
                     }}
-                    className={`p-2 rounded-full transition-all duration-300 ${
+                    className={`p-1 sm:p-2 rounded-full transition-all duration-300 ${
                       savedStories.has(story.id) 
                         ? 'bg-yellow-100 text-yellow-600' 
                         : 'bg-gray-200 text-gray-400 hover:bg-yellow-100 hover:text-yellow-600 hover:rotate-12'
                     }`}
                   >
-                    <Bookmark className="w-4 h-4" fill={savedStories.has(story.id) ? 'currentColor' : 'none'} />
+                    <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" fill={savedStories.has(story.id) ? 'currentColor' : 'none'} />
                   </button>
                 </Link>
               ))}
@@ -715,29 +728,29 @@ const SideHustleSnapsDashboard = () => {
           </div>
 
           {/* Footer with Stats */}
-          <div className="bg-blue-800 rounded-3xl p-8 text-white shadow-xl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+          <div className="bg-blue-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-center">
               <div>
-                <div className="text-4xl font-bold text-blue-300 mb-2">{stories.length}</div>
-                <div className="text-base text-blue-100">Total Stories</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">{stories.length}</div>
+                <div className="text-sm sm:text-base text-blue-100">Total Stories</div>
               </div>
               <div>
-                <div className="text-4xl font-bold text-blue-300 mb-2">15,623</div>
-                <div className="text-base text-blue-100">Active Readers</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">15,623</div>
+                <div className="text-sm sm:text-base text-blue-100">Active Readers</div>
               </div>
               <div>
-                <div className="text-4xl font-bold text-blue-300 mb-2">$12.3M</div>
-                <div className="text-base text-blue-100">Total Earnings Shared</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">$12.3M</div>
+                <div className="text-sm sm:text-base text-blue-100">Total Earnings Shared</div>
               </div>
               <div>
-                <div className="text-4xl font-bold text-blue-300 mb-2">98%</div>
-                <div className="text-base text-blue-100">Success Rate</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">98%</div>
+                <div className="text-sm sm:text-base text-blue-100">Success Rate</div>
               </div>
             </div>
           </div>
         </div>
         {showComingSoon && (
-          <div className="fixed bottom-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg animate-fade-in">
+          <div className="fixed bottom-4 right-4 bg-blue-600 text-white p-3 sm:p-4 rounded-lg shadow-lg animate-fade-in">
             Coming Soon!
           </div>
         )}
