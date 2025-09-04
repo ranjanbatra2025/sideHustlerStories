@@ -1,4 +1,3 @@
-// Home Page
 "use client";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -17,6 +16,7 @@ import Image from "next/image";
 
 import { type Story } from "@/lib/stories";
 import { useSupabase } from "@/components/context/SupabaseProvider";
+import SubmitStoryModal, { type StoryData } from "./stories/SubmitStoryModal";
 
 // No more static import for stories data
 
@@ -28,13 +28,13 @@ export default function Home() {
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [particleStyles, setParticleStyles] = useState<{ left: string; top: string; animationDelay: string; animationDuration: string; }[]>([]);
   const [animatedStats, setAnimatedStats] = useState([0, 0, 0]);
-  const [showComingSoon, setShowComingSoon] = useState(false); // Added for CTA
 
   const [stories, setStories] = useState<Story[]>([]);
   const [categoriesData, setCategoriesData] = useState<{ id: string; name: string; count: number }[]>([]);
   const [testimonialsData, setTestimonialsData] = useState<{ quote: string; author: string; rating: number }[]>([]);
   const [statsData, setStatsData] = useState({ inspiredReaders: 0, storiesShared: 0, totalEarnings: 0 });
   const [loading, setLoading] = useState(true); // Added loading state
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   const heroRef = useRef(null);
   const featuredRef = useRef(null);
@@ -151,6 +151,14 @@ export default function Home() {
       router.push(`/stories?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery("");
     }
+  };
+
+  const handleStorySubmitted = (newStory: StoryData) => {
+    const fullStory: Story = {
+      ...newStory,
+      id: Number(newStory.id || Date.now()),
+    };
+    setStories(prev => [...prev, fullStory]);
   };
 
   // Simplified animation variants
@@ -811,19 +819,10 @@ export default function Home() {
                 size="lg"
                 className="rounded-full text-lg px-10 bg-white text-primary hover:bg-white/90 hover:text-primary"
                 aria-label="Submit your snap"
-                onClick={() => setShowComingSoon(true)}
+                onClick={() => setShowSubmitModal(true)}
               >
                 Submit Your Snap
               </Button>
-              {showComingSoon && (
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 text-lg text-white"
-                >
-                  Coming Soon
-                </motion.p>
-              )}
             </motion.div>
           </motion.div>
         </motion.div>
@@ -838,6 +837,12 @@ export default function Home() {
           transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
         />
       </section>
+
+      <SubmitStoryModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onSubmitted={handleStorySubmitted}
+      />
 
       <Footer />
     </>

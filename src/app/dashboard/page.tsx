@@ -7,8 +7,22 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import SubmitStoryModal from "@/app/stories/SubmitStoryModal";
 
 // Define types
+interface StoryData {
+  id?: string;
+  title: string;
+  name: string;
+  hustle: string;
+  rating: number;
+  image?: string; // Optional if computed
+  story: string;
+  category: string;
+  views?: number;
+  updated_at?: string;
+}
+
 interface Story {
   id: number;
   title: string;
@@ -50,6 +64,7 @@ const SideHustleSnapsDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('Popular');
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Added loading state
   const router = useRouter();
 
@@ -85,7 +100,7 @@ const SideHustleSnapsDashboard = () => {
   };
 
   const badges = [
-    { name: "First 5 Stories", icon: "🌟", earned: false, description: "Read your first 5 stories" },
+    { name: "Every 5 Stories", icon: "🌟", earned: false, description: "Read your first 5 stories" },
     { name: "7-Day Streak", icon: "🔥", earned: false, description: "Read stories for 7 days straight" },
     { name: "Category Explorer", icon: "🗺️", earned: false, description: "Explore all categories" },
     { name: "Story Saver", icon: "💾", earned: false, description: "Save 10 stories" },
@@ -150,6 +165,7 @@ const SideHustleSnapsDashboard = () => {
       if (data) {
         const processedStories: Story[] = data.map(s => ({
           ...s,
+          id: Number(s.id), // Ensure id is number
           category: s.category,
           readTime: `${Math.ceil(s.story.split(' ').length / 200)} min`,
           viewsStr: s.views ? `${(s.views / 1000).toFixed(1)}K` : '1K',
@@ -295,7 +311,23 @@ const SideHustleSnapsDashboard = () => {
   };
 
   const handleSubmitStory = () => {
-    setShowComingSoon(true);
+    setShowSubmitModal(true);
+  };
+
+  const handleStorySubmitted = (newStory: StoryData) => {
+    const id = Number(newStory.id) || (stories.length > 0 ? Math.max(...stories.map(s => s.id)) + 1 : 1);
+    const processedStory: Story = {
+      ...newStory,
+      id,
+      image: newStory.image || categoryEmojis[newStory.category] || '📖',
+      views: newStory.views || 1000,
+      updated_at: newStory.updated_at || new Date().toISOString(),
+      readTime: `${Math.ceil(newStory.story.split(' ').length / 200)} min`,
+      viewsStr: newStory.views ? `${(newStory.views / 1000).toFixed(1)}K` : '1K',
+      trending: newStory.rating > 4.7,
+      snippet: newStory.story.slice(0, 100) + '...',
+    };
+    setStories(prev => [...prev, processedStory]);
   };
 
   const handleShareApp = async () => {
@@ -677,7 +709,7 @@ const SideHustleSnapsDashboard = () => {
                 <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">🎬 Quick Motivation</h3>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs sm:text-sm mb-1 sm:mb-2">30-Second Success Story</p>
+                    <p className="30-second success story text-xs sm:text-sm mb-1 sm:mb-2">30-Second Success Story</p>
                     <p className="text-base sm:text-lg font-semibold">"The Uber Driver's $1M App"</p>
                   </div>
                   <button onClick={handlePlayVideo} className="bg-white bg-opacity-20 p-3 sm:p-4 rounded-full hover:bg-opacity-30 transition-all hover:scale-110">
@@ -755,6 +787,11 @@ const SideHustleSnapsDashboard = () => {
           </div>
         )}
       </div>
+      <SubmitStoryModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onSubmitted={handleStorySubmitted}
+      />
       <Footer />
     </>
   );

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { createBrowserClient } from '@supabase/ssr';
 import { User } from '@supabase/supabase-js';
+import SubmitStoryModal from "../SubmitStoryModal";
 // Define Story type
 interface Story {
   id: number;
@@ -27,7 +28,7 @@ export default function StoryDetailPage() {
   const [story, setStory] = useState<Story | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   const supabase = useMemo(() => createBrowserClient(
@@ -218,22 +219,20 @@ export default function StoryDetailPage() {
             <Button 
               size="lg" 
               className="rounded-full px-8 py-3 text-base group"
-              onClick={() => setShowComingSoon(true)}
+              onClick={() => setShowSubmitModal(true)}
               aria-label="Submit your side hustle story"
             >
               Submit Your Story
               <ArrowLeft className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200 rotate-180" />
             </Button>
-            {showComingSoon && (
-              <p
-                className="mt-4 text-lg text-primary"
-              >
-                Coming Soon
-              </p>
-            )}
           </div>
         </div>
       </section>
+      <SubmitStoryModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onSubmitted={() => {}}
+      />
       <Footer />
     </>
   );

@@ -1,7 +1,7 @@
-// navbar
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -153,11 +153,18 @@ export function Navbar() {
           <Link
             href={session ? "/dashboard" : "/"}
             className={cn(
-              "text-2xl font-bold transition-all duration-300",
+              "text-2xl font-bold transition-all duration-300 flex items-center",
               isScrolled ? "text-foreground" : "text-foreground"
             )}
             aria-label="Side Hustle Snaps Home"
           >
+            <Image
+              src="/favicon.ico"
+              alt="Side Hustle Snaps Logo"
+              width={32}
+              height={32}
+              className="mr-2"
+            />
             <span className="text-primary">Side</span>HustleSnaps
           </Link>
 
@@ -319,10 +326,17 @@ export function Navbar() {
             <div className="flex justify-between items-center mb-8">
               <Link
                 href={session ? "/dashboard" : "/"}
-                className="text-2xl font-bold text-foreground"
+                className="text-2xl font-bold text-foreground flex items-center"
                 onClick={() => setIsMobileMenuOpen(false)}
                 aria-label="Side Hustle Snaps Home"
               >
+                <Image
+                  src="/favicon.ico"
+                  alt="Side Hustle Snaps Logo"
+                  width={32}
+                  height={32}
+                  className="mr-2"
+                />
                 <span className="text-primary">Side</span>HustleSnaps
               </Link>
               <Button

@@ -1,4 +1,3 @@
-// app/categories/page.tsx
 "use client";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -11,6 +10,20 @@ import { Button } from "@/components/ui/button";
 import { motion, useInView } from "framer-motion";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { debounce } from "lodash";
+import SubmitStoryModal from "../stories/SubmitStoryModal"; // Adjust path based on actual location; assuming relative to stories
+
+// Define StoryData type (aligned for consistency with modal props)
+interface StoryData {
+  id?: string;
+  title: string;
+  name: string;
+  hustle: string;
+  rating: number;
+  image: string;
+  story: string;
+  category: string;
+  views?: number;
+}
 
 interface Category {
   id: string;
@@ -25,7 +38,7 @@ export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("count"); // "count", "name" or "date"
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -112,6 +125,10 @@ export default function CategoriesPage() {
   const featuredCategory = useMemo(() => 
     categories.find(cat => cat.id === "digital-online") || categories[0],
   [categories]);
+
+  const handleStorySubmitted = (newStory: StoryData) => {
+    // No local stories state to update on categories page; can add logic if needed (e.g., refresh categories)
+  };
 
   return (
     <>
@@ -463,24 +480,21 @@ export default function CategoriesPage() {
               size="lg"
               className="rounded-full px-8"
               aria-label="Submit your story"
-              onClick={() => setShowComingSoon(true)}
+              onClick={() => setShowSubmitModal(true)}
             >
               Submit Your Story
             </Button>
-            {showComingSoon && (
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 text-lg text-primary"
-              >
-                Coming Soon
-              </motion.p>
-            )}
           </motion.div>
         </motion.div>
         <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-primary/5 rounded-br-[100px]"></div>
         <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-primary/3 rounded-tl-[100px]"></div>
       </section>
+
+      <SubmitStoryModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onSubmitted={handleStorySubmitted}
+      />
 
       <Footer />
     </>

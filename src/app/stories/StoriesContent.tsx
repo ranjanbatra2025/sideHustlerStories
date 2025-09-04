@@ -1,4 +1,3 @@
-// app/stories/StoriesContent.tsx (client component)
 "use client";
 import { useRef, useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -13,18 +12,9 @@ import { Separator } from "@/components/ui/separator";
 import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from '@supabase/ssr';
 import { User } from '@supabase/supabase-js';
-// Define Story type
-interface Story {
-  id: number;
-  title: string;
-  name: string;
-  hustle: string;
-  rating: number;
-  image: string;
-  story: string;
-  category: string;
-  views?: number;
-}
+import SubmitStoryModal from "./SubmitStoryModal";
+import { Story, StoryData } from '@/app/types';  // Import shared types
+
 // Categories mapping (duplicated from categories page for name lookup; consider sharing in a util file)
 const categoriesMap: { [key: string]: string } = {
   "digital-online": "Digital & Online Hustles",
@@ -37,13 +27,14 @@ const categoriesMap: { [key: string]: string } = {
   "student-parttime": "Student & Part-time Friendly Hustles",
 };
 const categoryEmojis: { [key: string]: string } = {
-  'e-commerce': '🛒',
-  'digital-products': '📱',
-  'freelancing': '💼',
-  'creative-services': '🎨',
-  'tech-hustles': '💻',
-  'lifestyle-service': '🏡',
-  'content-creation': '📹',
+  "digital-online": "🌐",
+  "creative-artistic": "🎨",
+  "business-entrepreneurship": "📊",
+  "tech-skills": "💻",
+  "gig-economy": "🛵",
+  "passive-income": "💰",
+  "lifestyle-service": "🏡",
+  "student-parttime": "📚",
 };
 // Animation variants
 const containerVariants = {
@@ -76,12 +67,13 @@ export default function StoriesContent() {
   const searchParams = useSearchParams();
   const categoryId = searchParams.get('category');
   const categoryName = categoryId ? categoriesMap[categoryId] || 'Unknown Category' : null;
+  const categoryEmoji = categoryId ? categoryEmojis[categoryId] || '' : '';
   const [stories, setStories] = useState<Story[]>([]);
   const [savedStories, setSavedStories] = useState<Set<number>>(new Set());
   const [readStories, setReadStories] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [particles, setParticles] = useState<
     Array<{ left: number; delay: number; duration: number }>
   >([]);
@@ -129,9 +121,10 @@ export default function StoriesContent() {
             acc[s.category] = (acc[s.category] || 0) + 1;
             return acc;
           }, {});
-          const topCat = Object.entries(categoryCounts).sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0][0];
+          const sortedCategories = Object.entries(categoryCounts).sort((a: [string, number], b: [string, number]) => b[1] - a[1]);
+          const topCat = sortedCategories[0]?.[0] || '';
           setCommunityInsights({
-            mostViewed: sortedByViews[0].title,
+            mostViewed: sortedByViews[0]?.title || '',
             topCategory: topCat,
           });
         }
@@ -192,6 +185,19 @@ export default function StoriesContent() {
   };
   const featuredStories = [...stories].sort((a, b) => b.rating - a.rating).slice(0, 3);
   const savedStoriesList = stories.filter(s => savedStories.has(s.id));
+  const handleStorySubmitted = (newStoryData: StoryData) => {
+    const newStory: Story = {
+      ...newStoryData,
+      id: Number(newStoryData.id) || 0,  // Parse id to number; fallback if undefined
+      views: newStoryData.views ?? 0,
+      updated_at: newStoryData.updated_at ?? new Date().toISOString(),
+      readTime: newStoryData.readTime ?? 0,
+      viewsStr: newStoryData.viewsStr ?? '0',
+      upvoted: newStoryData.upvoted ?? false,
+      upvoteCount: newStoryData.upvoteCount ?? 0,
+    };
+    setStories(prev => [...prev, newStory]);
+  };
   return (
     <>
       <Navbar />
@@ -226,7 +232,7 @@ export default function StoriesContent() {
             variants={itemVariants}
             className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-center md:text-left"
           >
-            {categoryName ? `${categoryName} Stories` : 'Side Hustle Stories'}
+            {categoryEmoji} {categoryName ? `${categoryName} Stories` : 'Side Hustle Stories'}
           </motion.h1>
           <motion.p
             variants={itemVariants}
@@ -307,7 +313,7 @@ export default function StoriesContent() {
                         <span>{story.rating.toFixed(1)}</span>
                       </div>
                     </div>
-                    <p>{story.category}</p>
+                    <p className="text-sm text-muted-foreground">{categoryEmojis[story.category] || ''} {categoriesMap[story.category] || story.category}</p>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground line-clamp-4">{story.story}</p>
@@ -380,6 +386,7 @@ export default function StoriesContent() {
                         </div>
                       </div>
                       <h3 className="text-lg font-medium text-primary">{story.hustle}</h3>
+                      <p className="text-sm text-muted-foreground">{categoryEmojis[story.category] || ''} {categoriesMap[story.category] || story.category}</p>
                     </CardHeader>
                     <CardContent className="flex-grow pb-4">
                       <div className="relative">
@@ -442,7 +449,7 @@ export default function StoriesContent() {
             </Card>
             <Card>
               <CardHeader><CardTitle>Top Category</CardTitle></CardHeader>
-              <CardContent><p>{communityInsights.topCategory || 'None yet'}</p></CardContent>
+              <CardContent><p>{communityInsights.topCategory ? `${categoryEmojis[communityInsights.topCategory] || ''} ${categoriesMap[communityInsights.topCategory] || communityInsights.topCategory}` : 'None yet'}</p></CardContent>
             </Card>
           </div>
         </div>
@@ -471,24 +478,20 @@ export default function StoriesContent() {
             <Button
               size="lg"
               className="rounded-full px-8 py-3 text-base group"
-              onClick={() => setShowComingSoon(true)}
+              onClick={() => setShowSubmitModal(true)}
               aria-label="Submit your side hustle story"
             >
               Submit Your Story
               <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
             </Button>
-            {showComingSoon && (
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 text-lg text-primary"
-              >
-                Coming Soon
-              </motion.p>
-            )}
           </motion.div>
         </motion.div>
       </section>
+      <SubmitStoryModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onSubmitted={handleStorySubmitted}
+      />
       <Footer />
     </>
   );
