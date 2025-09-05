@@ -157,6 +157,7 @@ export default function Home() {
     const fullStory: Story = {
       ...newStory,
       id: Number(newStory.id || Date.now()),
+      rating: 0, // Add default rating to satisfy the Story type
     };
     setStories(prev => [...prev, fullStory]);
   };

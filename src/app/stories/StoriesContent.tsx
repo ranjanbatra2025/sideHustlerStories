@@ -12,9 +12,19 @@ import { Separator } from "@/components/ui/separator";
 import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from '@supabase/ssr';
 import { User } from '@supabase/supabase-js';
-import SubmitStoryModal from "./SubmitStoryModal";
-import { Story, StoryData } from '@/app/types';  // Import shared types
-
+import SubmitStoryModal, { type StoryData } from "./SubmitStoryModal";
+// Define Story type
+export interface Story {
+  id: number;
+  title: string;
+  name: string;
+  hustle: string;
+  rating: number;
+  image: string;
+  story: string;
+  category: string;
+  views?: number;
+}
 // Categories mapping (duplicated from categories page for name lookup; consider sharing in a util file)
 const categoriesMap: { [key: string]: string } = {
   "digital-online": "Digital & Online Hustles",
@@ -185,18 +195,13 @@ export default function StoriesContent() {
   };
   const featuredStories = [...stories].sort((a, b) => b.rating - a.rating).slice(0, 3);
   const savedStoriesList = stories.filter(s => savedStories.has(s.id));
-  const handleStorySubmitted = (newStoryData: StoryData) => {
-    const newStory: Story = {
-      ...newStoryData,
-      id: Number(newStoryData.id) || 0,  // Parse id to number; fallback if undefined
-      views: newStoryData.views ?? 0,
-      updated_at: newStoryData.updated_at ?? new Date().toISOString(),
-      readTime: newStoryData.readTime ?? 0,
-      viewsStr: newStoryData.viewsStr ?? '0',
-      upvoted: newStoryData.upvoted ?? false,
-      upvoteCount: newStoryData.upvoteCount ?? 0,
+  const handleStorySubmitted = (newStory: StoryData) => {
+    const story: Story = {
+      ...newStory,
+      id: newStory.id ? parseInt(newStory.id) : 0,
+      rating: 0, // Add default rating to satisfy the Story type
     };
-    setStories(prev => [...prev, newStory]);
+    setStories(prev => [...prev, story]);
   };
   return (
     <>

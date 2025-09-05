@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Menu, Search, User } from "lucide-react";
+import { Menu, Search, User, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useSupabase } from "@/components/context/SupabaseProvider";  // New import for Supabase
@@ -164,6 +164,7 @@ export function Navbar() {
               width={32}
               height={32}
               className="mr-2"
+              style={{ height: "auto" }} // Fix aspect ratio warning
             />
             <span className="text-primary">Side</span>HustleSnaps
           </Link>
@@ -336,6 +337,7 @@ export function Navbar() {
                   width={32}
                   height={32}
                   className="mr-2"
+                  style={{ height: "auto" }} // Fix aspect ratio warning
                 />
                 <span className="text-primary">Side</span>HustleSnaps
               </Link>
@@ -346,7 +348,7 @@ export function Navbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 aria-label="Close mobile menu"
               >
-                <Menu className="h-5 w-5" />
+                <X className="h-5 w-5" />
               </Button>
             </div>
             <nav className="flex flex-col space-y-4">

@@ -1,4 +1,3 @@
-// app/stories/page.tsx (server component)
 import { Suspense } from 'react';
 import StoriesContent from './StoriesContent';
 

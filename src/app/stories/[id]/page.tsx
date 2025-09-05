@@ -30,6 +30,8 @@ export default function StoryDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [userRating, setUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
 
   const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -66,6 +68,19 @@ export default function StoryDetailPage() {
         // Mark as read if user
         if (user) {
           await supabase.from('user_stories_reads').upsert({ user_id: user.id, story_id: storyId }, { onConflict: 'user_id, story_id' });
+        }
+
+        // Fetch user's current rating if signed in
+        if (user) {
+          const { data: ur, error: urError } = await supabase
+            .from('user_story_ratings')
+            .select('rating')
+            .eq('user_id', user.id)
+            .eq('story_id', storyId)
+            .single();
+          if (ur && !urError) {
+            setUserRating(ur.rating);
+          }
         }
       } catch (err) {
         setError("Story not found or error fetching data");
@@ -107,6 +122,27 @@ export default function StoryDetailPage() {
       </>
     );
   }
+
+  const handleRate = async (newRating: number) => {
+    if (!user) {
+      // Optionally prompt login
+      return;
+    }
+    setUserRating(newRating);
+    await supabase.from('user_story_ratings').upsert({
+      user_id: user.id,
+      story_id: storyId,
+      rating: newRating,
+    });
+
+    // Refetch the story to update the average rating
+    const response = await fetch(`/api/stories/${storyId}`);
+    if (response.ok) {
+      const updatedStory: Story = await response.json();
+      setStory(updatedStory);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -162,6 +198,24 @@ export default function StoryDetailPage() {
             <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
             <span>{story.rating.toFixed(1)}</span>
           </div>
+          {user && (
+            <div className="mt-4 mb-8 text-center md:text-left">
+              <p className="text-white/90 mb-2">Rate this story:</p>
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className="h-6 w-6 cursor-pointer text-yellow-400"
+                    fill={(i < (hoverRating || userRating)) ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    onClick={() => handleRate(i + 1)}
+                    onMouseEnter={() => setHoverRating(i + 1)}
+                    onMouseLeave={() => setHoverRating(0)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
           <div className="relative mx-auto w-full max-w-[800px] h-[400px] md:h-auto aspect-[2/1]">
             <Image
               src={story.image}

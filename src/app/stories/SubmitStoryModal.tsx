@@ -26,7 +26,6 @@ export interface StoryData {
   title: string;
   name: string;
   hustle: string;
-  rating: number;
   image: string;
   story: string;
   category: string;
@@ -43,7 +42,6 @@ export default function SubmitStoryModal({ isOpen, onClose, onSubmitted }: Submi
     title: "",
     name: "",
     hustle: "",
-    rating: 5,
     image: "",
     story: "",
     category: "",
@@ -74,7 +72,7 @@ export default function SubmitStoryModal({ isOpen, onClose, onSubmitted }: Submi
   };
 
   const handleSelectChange = (name: keyof StoryData) => (value: string) => {
-    setFormData(prev => ({ ...prev, [name]: name === 'rating' ? Number(value) : value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,9 +93,6 @@ export default function SubmitStoryModal({ isOpen, onClose, onSubmitted }: Submi
     if (!imageFile && !formData.image) {
       return 'Please provide an image file or URL.';
     }
-    if (formData.rating < 1 || formData.rating > 5) {
-      return 'Rating must be between 1 and 5.';
-    }
     return null;
   };
 
@@ -117,18 +112,36 @@ export default function SubmitStoryModal({ isOpen, onClose, onSubmitted }: Submi
       if (!imageUrl && imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('story-images')
-          .upload(`public/${fileName}`, imageFile, {
-            cacheControl: '3600',
-            upsert: false,
-          });
 
-        if (uploadError) throw uploadError;
+        // Get signed URL from API
+        const signedResponse = await fetch('/api/generate-upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName, fileType: imageFile.type }),
+        });
+        if (!signedResponse.ok) {
+          const errorData = await signedResponse.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to get signed URL');
+        }
 
+        const { signedUrl, path } = await signedResponse.json();
+
+        // Upload file directly to signed URL
+        const uploadResponse = await fetch(signedUrl, {
+          method: 'PUT',
+          body: imageFile,
+          headers: { 'Content-Type': imageFile.type },
+        });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          throw new Error(errorText || 'Upload failed');
+        }
+
+        // Get public URL
         const { data: publicUrlData } = supabase.storage
           .from('story-images')
-          .getPublicUrl(`public/${fileName}`);
+          .getPublicUrl(path);
 
         imageUrl = publicUrlData.publicUrl;
       }
@@ -192,19 +205,6 @@ export default function SubmitStoryModal({ isOpen, onClose, onSubmitted }: Submi
             </Select>
           </div>
           <div>
-            <Label htmlFor="rating">Rating (1-5) *</Label>
-            <Select onValueChange={handleSelectChange('rating')} value={formData.rating.toString()}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4, 5].map(num => (
-                  <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
             <Label>Image *</Label>
             <div className="space-y-2">
               <Input id="imageFile" type="file" accept="image/*" onChange={handleFileChange} />
@@ -229,4 +229,4 @@ export default function SubmitStoryModal({ isOpen, onClose, onSubmitted }: Submi
       </DialogContent>
     </Dialog>
   );
-} 
+}

@@ -15,7 +15,7 @@ interface StoryData {
   title: string;
   name: string;
   hustle: string;
-  rating: number;
+  rating?: number;
   image?: string; // Optional if computed
   story: string;
   category: string;
@@ -50,7 +50,7 @@ interface Category {
 
 interface ReadStory {
   story_id: number;
-  read_at: string;
+  created_at: string;
 }
 
 const SideHustleSnapsDashboard = () => {
@@ -60,12 +60,17 @@ const SideHustleSnapsDashboard = () => {
   const [currentQuote, setCurrentQuote] = useState(0);
   const [currentFact, setCurrentFact] = useState(0);
   const [savedStories, setSavedStories] = useState<Set<number>>(new Set());
-  const [readStories, setReadStories] = useState<ReadStory[]>([]); // Changed to array for read_at
+  const [readStories, setReadStories] = useState<ReadStory[]>([]); // Changed to array for created_at
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('Popular');
   const [showComingSoon, setShowComingSoon] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Added loading state
+  const [appStats, setAppStats] = useState({
+    activeReaders: 0,
+    totalEarnings: '$0',
+    successRate: '0%'
+  });
   const router = useRouter();
 
   const supabase = useMemo(() => createBrowserClient(
@@ -89,7 +94,7 @@ const SideHustleSnapsDashboard = () => {
     "The average millionaire has 7 different income streams."
   ];
 
-  const categoryEmojis: { [key: string]: string } = {
+  const categoryEmojis = useMemo(() => ({
     'e-commerce': '🛒',
     'digital-products': '📱',
     'freelancing': '💼',
@@ -97,7 +102,7 @@ const SideHustleSnapsDashboard = () => {
     'tech-hustles': '💻',
     'lifestyle-service': '🏡',
     'content-creation': '📹',
-  };
+  }), []);
 
   const badges = [
     { name: "Every 5 Stories", icon: "🌟", earned: false, description: "Read your first 5 stories" },
@@ -171,7 +176,7 @@ const SideHustleSnapsDashboard = () => {
           viewsStr: s.views ? `${(s.views / 1000).toFixed(1)}K` : '1K',
           views: s.views || 1000,
           trending: s.rating > 4.7,
-          image: categoryEmojis[s.category] || '📖',
+          image: categoryEmojis[s.category as keyof typeof categoryEmojis] || '📖',
           snippet: s.story.slice(0, 100) + '...'
         }));
 
@@ -207,7 +212,7 @@ const SideHustleSnapsDashboard = () => {
         const { data: savedData } = await supabase.from('user_stories_saves').select('story_id').eq('user_id', user.id);
         setSavedStories(new Set(savedData?.map(d => d.story_id) || []));
 
-        const { data: readData } = await supabase.from('user_stories_reads').select('story_id, read_at').eq('user_id', user.id);
+        const { data: readData } = await supabase.from('user_stories_reads').select('story_id, created_at').eq('user_id', user.id);
         setReadStories(readData || []);
       }
     };
@@ -229,7 +234,7 @@ const SideHustleSnapsDashboard = () => {
 
   const calculateReadingStreak = (reads: ReadStory[]) => {
     if (reads.length === 0) return 0;
-    const uniqueDays = [...new Set(reads.map(r => new Date(r.read_at).toISOString().slice(0,10)))].sort((a,b) => new Date(b).getTime() - new Date(a).getTime());
+    const uniqueDays = [...new Set(reads.map(r => new Date(r.created_at).toISOString().slice(0,10)))].sort((a,b) => new Date(b).getTime() - new Date(a).getTime());
     let streak = 1;
     let current = new Date(uniqueDays[0]);
     for (let i = 1; i < uniqueDays.length; i++) {
@@ -299,7 +304,7 @@ const SideHustleSnapsDashboard = () => {
 
   // Update badges earned
   const updatedBadges = badges.map(b => {
-    if (b.name === "First 5 Stories") return { ...b, earned: weeklyStats.storiesRead >= 5 };
+    if (b.name === "Every 5 Stories") return { ...b, earned: weeklyStats.storiesRead >= 5 };
     if (b.name === "7-Day Streak") return { ...b, earned: weeklyStats.readingStreak >= 7 };
     if (b.name === "Category Explorer") return { ...b, earned: weeklyStats.categoriesExplored >= categories.length };
     if (b.name === "Story Saver") return { ...b, earned: savedStories.size >= 10 };
@@ -319,12 +324,13 @@ const SideHustleSnapsDashboard = () => {
     const processedStory: Story = {
       ...newStory,
       id,
-      image: newStory.image || categoryEmojis[newStory.category] || '📖',
+      image: newStory.image || categoryEmojis[newStory.category as keyof typeof categoryEmojis] || '📖',
       views: newStory.views || 1000,
       updated_at: newStory.updated_at || new Date().toISOString(),
       readTime: `${Math.ceil(newStory.story.split(' ').length / 200)} min`,
       viewsStr: newStory.views ? `${(newStory.views / 1000).toFixed(1)}K` : '1K',
-      trending: newStory.rating > 4.7,
+      rating: newStory.rating ?? 0,
+      trending: (newStory.rating ?? 0) > 4.7,
       snippet: newStory.story.slice(0, 100) + '...',
     };
     setStories(prev => [...prev, processedStory]);
@@ -347,8 +353,18 @@ const SideHustleSnapsDashboard = () => {
     }
   };
 
-  const handleSubscribe = () => {
-    setShowComingSoon(true);
+  const handleSubscribe = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from('subscriptions').upsert({
+        user_id: user.id,
+        email: user.email,
+        subscribed_at: new Date().toISOString()
+      });
+      alert('Subscribed successfully! You will receive daily motivation in your inbox.');
+    } else {
+      alert('Please sign in to subscribe.');
+    }
   };
 
   const handlePlayVideo = () => {
@@ -366,6 +382,53 @@ const SideHustleSnapsDashboard = () => {
     }
   };
 
+  // Fetch and compute app stats
+  useEffect(() => {
+    if (isLoading || stories.length === 0) return;
+
+    const fetchAndComputeStats = async () => {
+      // Active Readers: unique users who have read stories
+      const { data: readsData } = await supabase.from('user_stories_reads').select('user_id');
+      const uniqueReaders = new Set(readsData?.map((r: { user_id: string }) => r.user_id)).size || 0;
+
+      // Success Rate: percentage of stories with rating >= 4
+      const successCount = stories.filter(s => s.rating >= 4).length;
+      const successRate = stories.length > 0 ? Math.round((successCount / stories.length) * 100) : 0;
+
+      // Total Earnings Shared: parse dollar amounts from story texts
+      let totalEarnings = 0;
+      stories.forEach(s => {
+        const matches = s.story.match(/\$?[\d,]+(\.\d{2})?/g);
+        if (matches) {
+          matches.forEach(match => {
+            const num = parseFloat(match.replace(/[$,]/g, ''));
+            if (!isNaN(num)) {
+              totalEarnings += num;
+            }
+          });
+        }
+      });
+
+      // Format totalEarnings
+      let formattedEarnings = '$0';
+      if (totalEarnings > 1000000) {
+        formattedEarnings = `$${(totalEarnings / 1000000).toFixed(1)}M`;
+      } else if (totalEarnings > 1000) {
+        formattedEarnings = `$${(totalEarnings / 1000).toFixed(1)}K`;
+      } else {
+        formattedEarnings = `$${totalEarnings.toFixed(0)}`;
+      }
+
+      setAppStats({
+        activeReaders: uniqueReaders,
+        totalEarnings: formattedEarnings,
+        successRate: `${successRate}%`
+      });
+    };
+
+    fetchAndComputeStats();
+  }, [isLoading, stories, supabase]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -378,7 +441,7 @@ const SideHustleSnapsDashboard = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto px-4 py-8 md:px-6 md:py-12 space-y-12 pt-20">
+        <div className="max-w-7xl mx-auto px-4 py-8 md:px-6 md:py-12 text-white space-y-12 pt-20">
           
           {/* Welcome Section */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-6 sm:p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
@@ -613,7 +676,7 @@ const SideHustleSnapsDashboard = () => {
                     badge.earned ? 'ring-4 ring-yellow-300 ring-opacity-70 animate-pulse' : 'opacity-80'
                   }`}
                 >
-                  <div className="text-4xl sm:text-6xl mb-2 sm:mb-3 animate-bounce">{badge.icon}</div>
+                  <div className="text-4xl sm:text-6xl mb-2 sm:mb-3">{badge.icon}</div>
                   <h3 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">{badge.name}</h3>
                   <p className="text-xs sm:text-sm opacity-90 mb-2 sm:mb-3">{badge.description}</p>
                   {badge.earned && (
@@ -767,15 +830,15 @@ const SideHustleSnapsDashboard = () => {
                 <div className="text-sm sm:text-base text-blue-100">Total Stories</div>
               </div>
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">15,623</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">{appStats.activeReaders}</div>
                 <div className="text-sm sm:text-base text-blue-100">Active Readers</div>
               </div>
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">$12.3M</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">{appStats.totalEarnings}</div>
                 <div className="text-sm sm:text-base text-blue-100">Total Earnings Shared</div>
               </div>
               <div>
-                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">98%</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2">{appStats.successRate}</div>
                 <div className="text-sm sm:text-base text-blue-100">Success Rate</div>
               </div>
             </div>

@@ -18,7 +18,7 @@ interface StoryData {
   title: string;
   name: string;
   hustle: string;
-  rating: number;
+  rating?: number;
   image: string;
   story: string;
   category: string;
